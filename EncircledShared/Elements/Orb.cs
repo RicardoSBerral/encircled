@@ -27,7 +27,7 @@ namespace Encircled
 		readonly CCDrawNode node;
 		readonly CCParticleSun sun;
 
-		public Orb (CCPoint location)
+		public Orb ()
 		{
 			// Dibujar círculo
 			node = new CCDrawNode ();
@@ -44,9 +44,6 @@ namespace Encircled
 			} else {
 				sun = null;
 			}
-
-			// Posición
-			this.Position = location;
 
 			// Animación
 			this.Scale = 0f;

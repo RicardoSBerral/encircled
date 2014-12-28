@@ -13,7 +13,6 @@ namespace Encircled
 	public class GameField : CCNode
 	{
 		const float LINE_WIDTH = 1f;
-		const float WIDTH_PROPORTION = 720f / 1280f;
 		const float LIMIT_PROPORTION = 0.15f;
 		const float ARROW_PROPORTION = 0.8f;
 
@@ -21,10 +20,14 @@ namespace Encircled
 		readonly CCDrawNode limit;
 		readonly Arrow arrow;
 
-		public GameField (CCPoint location, float height, CCColor4F color)
+		public GameField (float height, CCColor4F color, float width_proportion = 720f / 1280f)
 		{
+
+			// TAMAÑO TOTAL
+			float width = height * width_proportion;
+			this.ContentSize = new CCSize (width, height);
+
 			// MARCO
-			float width = height * WIDTH_PROPORTION;
 			CCPoint corner1 = CCPoint.Zero;
 			CCPoint corner2 = new CCPoint (width, 0f);
 			CCPoint corner3 = new CCPoint (width, height);
@@ -48,12 +51,20 @@ namespace Encircled
 
 			// FLECHA
 			float arrow_length = limit_height * ARROW_PROPORTION;
-			corner1 = new CCPoint (width / 2, 0f);
+			corner1 = new CCPoint(width / 2, 0f);
 
-			arrow = new Arrow (corner1, arrow_length, color);
+			arrow = new Arrow (arrow_length, color)
+			{
+				Position = corner1,
+				AnchorPoint = CCPoint.Zero
+			};
 			this.AddChild (arrow);
+		}
 
-			this.Position = location;
+		public void Aim(CCPoint direction)
+		{
+			CCPoint origin = new CCPoint (arrow.Position);
+			arrow.Direction = direction.Sub(ref origin);
 		}
 	}
 }

@@ -3,8 +3,9 @@ using System.Diagnostics;
 using CocosSharp;
 using Encircled;
 
-namespace EncircledWindowsDX
+namespace EncircledWindows
 {
+
 	static class Program
 	{
 		/// <summary>
@@ -12,9 +13,7 @@ namespace EncircledWindowsDX
 		/// </summary>
 		static void Main(string[] args)
 		{
-			bool fullScreen = false;
-			CCSize size = new CCSize (1280, 720);
-			CCApplication application = new CCApplication(fullScreen, null);
+			CCApplication application = new CCApplication(false, new CCSize(500f, 500f));
             application.ApplicationDelegate = new EncircledApplicationDelegate();
 			application.StartGame();
 		}

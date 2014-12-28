@@ -13,7 +13,7 @@ namespace Encircled
 
             AddEventListener (touchListener, this);
 
-            Color = CCColor3B.Black;
+            Color = CCColor3B.White;
             Opacity = 255;
         }
 
@@ -21,9 +21,9 @@ namespace Encircled
         {
             base.AddedToScene ();
 
-            var label = new CCLabelTtf("Tap Screen to Go Bananas!", "arial", 22) {
+            var label = new CCLabelTtf("ENCIRCLED", "MarkerFelt", 22) {
                 Position = VisibleBoundsWorldspace.Center,
-                Color = CCColor3B.Green,
+                Color = CCColor3B.Red,
                 HorizontalAlignment = CCTextAlignment.Center,
                 VerticalAlignment = CCVerticalTextAlignment.Center,
                 AnchorPoint = CCPoint.AnchorMiddle

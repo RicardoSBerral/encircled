@@ -16,23 +16,35 @@ namespace Encircled
 		const float SIDE_PROPORTION = 0.2f;
 
 		readonly CCDrawNode arrow;
+		public CCPoint Direction {
+			get {
+				return new CCPoint (arrow.RotationX, arrow.RotationY);
+			}
+			set {
+				System.Console.WriteLine ("value: " + value + " angle : " + value.Angle);
+				arrow.Rotation = value.Angle;
+			}
+		}
 
-		public Arrow (CCPoint location, float size, CCColor4F color)
+		public Arrow (float size, CCColor4F color)
 		{
-			// MARCO
+
+			// TAMAÑO TOTAL
 			float side_X_projection = size * SIDE_PROPORTION;
+			this.ContentSize = new CCSize (side_X_projection * 2, size);
+
+			// MARCO
 			CCPoint start = CCPoint.Zero;
 			CCPoint end = new CCPoint (0f, size);
-			CCPoint sideA = new CCPoint (side_X_projection, side_length - side_X_projection);
-			CCPoint sideB = new CCPoint (- side_X_projection, side_length - side_X_projection);
+			CCPoint sideA = new CCPoint (side_X_projection, size - side_X_projection);
+			CCPoint sideB = new CCPoint (- side_X_projection, size - side_X_projection);
 
 			arrow = new CCDrawNode ();
 			arrow.DrawSegment (start, end, LINE_WIDTH, color);
 			arrow.DrawSegment (end, sideA, LINE_WIDTH, color);
 			arrow.DrawSegment (end, sideB, LINE_WIDTH, color);
+			arrow.AnchorPoint = CCPoint.Zero;
 			this.AddChild (arrow);
-
-			this.Position = location;
 		}
 	}
 }

@@ -13,8 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameOverLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameStartLayer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Scenes\JuegoScene.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Scenes\NuevoJuegoScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Elements\GameField.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Elements\Orb.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Elements\OrbBlock.cs" />

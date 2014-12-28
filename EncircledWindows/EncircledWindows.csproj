@@ -114,8 +114,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="Content\Sounds\backgroundMusic.xnb" />
-    <None Include="Content\fonts\Parchment-40.xnb" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\fonts\MarkerFelt-22.xnb">

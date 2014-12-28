@@ -18,7 +18,7 @@ namespace Encircled
             CCSize winSize = mainWindow.WindowSizeInPixels;
             mainWindow.SetDesignResolutionSize(winSize.Width, winSize.Height, CCSceneResolutionPolicy.ExactFit);
 
-			CCScene scene = new NuevoJuegoScene(mainWindow);
+			CCScene scene = GameStartLayer.GameStartLayerScene(mainWindow);
             mainWindow.RunWithScene (scene);
         }
 
