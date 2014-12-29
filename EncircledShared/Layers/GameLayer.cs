@@ -74,22 +74,8 @@ namespace Encircled
 		void Aim (List<CCTouch> touches, CCEvent touchEvent)
 		{
 			var location = touches [0].LocationOnScreen;
-			System.Console.WriteLine ("location: " + location);
-			var c1 = this.ScreenToWorldspace (location);
-			System.Console.WriteLine (" converted: " + c1);
-			var c2 = field.ScreenToWorldspace (location);
-			System.Console.WriteLine (" field1 converted: " + c2);
-			c2 = field.ScreenToWorldspace (c1);
-			System.Console.WriteLine (" field2 converted: " + c2);
-			c2 = field.ConvertToWorldspace (location);
-			System.Console.WriteLine (" field3 converted: " + c2);
-			c2 = field.ConvertToWorldspace (c1);
-			System.Console.WriteLine (" field4 converted: " + c2);
-			c2 = field.WorldToParentspace (location);
-			System.Console.WriteLine (" field5 converted: " + c2);
-			c2 = field.WorldToParentspace (c1);
-			System.Console.WriteLine (" field6 converted: " + c2);
-			field.Aim (c2);
+			location = this.ScreenToWorldspace (location);
+			field.Aim (location);
 		}
 
 		protected override void AddedToScene ()

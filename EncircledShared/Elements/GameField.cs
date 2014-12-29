@@ -63,8 +63,9 @@ namespace Encircled
 
 		public void Aim(CCPoint direction)
 		{
-			CCPoint origin = new CCPoint (arrow.Position);
-			arrow.Direction = direction.Sub(ref origin);
+			var origin = this.ConvertToWorldspace (arrow.Position);
+			var sub = origin.Sub(ref direction);
+			arrow.Angle = -CCMacros.CCRadiansToDegrees (sub.Angle) - 90;
 		}
 	}
 }

@@ -16,13 +16,15 @@ namespace Encircled
 		const float SIDE_PROPORTION = 0.2f;
 
 		readonly CCDrawNode arrow;
-		public CCPoint Direction {
-			get {
-				return new CCPoint (arrow.RotationX, arrow.RotationY);
-			}
+		public float Angle {
 			set {
-				System.Console.WriteLine ("value: " + value + " angle : " + value.Angle);
-				arrow.Rotation = value.Angle;
+				if (value < -70 && value >= -180) {
+					arrow.Rotation = -70;
+				} else if (value < -70 && value < -180 || value > 70) {
+					arrow.Rotation = 70;
+				} else {
+					arrow.Rotation = value;
+				}
 			}
 		}
 
