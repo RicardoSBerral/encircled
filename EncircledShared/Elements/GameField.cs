@@ -20,6 +20,29 @@ namespace Encircled
 		readonly CCDrawNode limit;
 		readonly Arrow arrow;
 
+		List<Orb> shooting;
+
+		public CCPoint Head {
+			get {
+				return this.WorldToParentspace(this.ConvertToWorldspace(arrow.Head));
+			}
+		}
+
+		public CCPoint Direction {
+			get {
+				return arrow.Direction;
+			}
+			set {
+				var origin = this.WorldToParentspace(this.ConvertToWorldspace(arrow.Position));
+				var sub = origin.Sub(ref value);
+				arrow.Angle = CCMacros.CCRadiansToDegrees (sub.Angle);
+				foreach (var orb in shooting) {
+					orb.Position = arrow.Head;
+					orb.Direction = arrow.Direction;
+				}
+			}
+		}
+
 		public GameField (float height, CCColor4F color, float width_proportion = 720f / 1280f)
 		{
 
@@ -59,13 +82,30 @@ namespace Encircled
 				AnchorPoint = CCPoint.Zero
 			};
 			this.AddChild (arrow);
+
+			// DISPARANDO
+			shooting = new List<Orb>();
 		}
 
-		public void Aim(CCPoint direction)
+		public void Shoot(float growing_time, float width_to_orb_proportion = 0.05f)
 		{
-			var origin = this.ConvertToWorldspace (arrow.Position);
-			var sub = origin.Sub(ref direction);
-			arrow.Angle = -CCMacros.CCRadiansToDegrees (sub.Angle) - 90;
+			var orb = new Orb (this.ContentSize.Width * width_to_orb_proportion)
+			{
+				Position = arrow.Head,
+				Direction = arrow.Direction
+			};
+			shooting.Add (orb);
+			var sequence = new CCSequence (
+				orb.Grow(growing_time), 
+				new CCSequence(
+					orb.Shoot(),
+					new CCCallFunc( () => {
+						// this.RemoveChild(shooting);
+						shooting.Remove (orb);
+					})
+				));
+			orb.RunAction (sequence);
+			this.AddChild (orb);
 		}
 	}
 }

@@ -20,19 +20,22 @@ namespace Encircled
 			CCColor4B.Gray,
 			CCColor4B.Green
 		};
-		const float RADIUS = 10f;
-		const float ORB_SPEED = 350f;
-		const float GROWING_TIME = 0.2f;
 
 		readonly CCDrawNode node;
 		readonly CCParticleSun sun;
 
-		public Orb ()
+		readonly float orb_speed;
+		public CCPoint Direction { get; set; }
+
+		public Orb (float radius, float orb_speed = 5f)
 		{
+			// Copiar parámetros
+			this.orb_speed = orb_speed;
+
 			// Dibujar círculo
 			node = new CCDrawNode ();
 			CCColor4B color = colors [CCRandom.Next (colors.Count)];
-			node.DrawSolidCircle (CCPoint.Zero, RADIUS, color);
+			node.DrawSolidCircle (CCPoint.Zero, radius, color);
 			this.AddChild (node);
 
 			// Dibujar brillo
@@ -44,23 +47,20 @@ namespace Encircled
 			} else {
 				sun = null;
 			}
-
-			// Animación
-			this.Scale = 0f;
-			var grow = new CCScaleTo (GROWING_TIME, 1);
-			this.RunAction (grow);
 		}
 
-		public void Shoot (CCPoint origin, CCPoint direction)
+		public CCFiniteTimeAction Grow (float growing_time = 0.2f)
 		{
-			this.StopAllActions ();
-			float ds = CCPoint.Distance (this.Position, direction);
+			return new CCSequence (new CCScaleTo (0f, 0f), new CCScaleTo (growing_time, 1f));
+		}
 
-			var dt = ds / ORB_SPEED;
-
-			var moveOrb = new CCMoveTo (dt, direction);
-			// CCAction changeSize = new CC;
-			this.RunAction (moveOrb);
+		public CCFiniteTimeAction Shoot ()
+		{
+			return new CCCallFuncN( (node) => {
+				var orb = (Orb) node;
+				var dt = 1 / orb.orb_speed;
+				orb.RunAction(new CCMoveBy(dt, orb.Position + orb.Direction));
+			});
 		}
 
 		public void TrembleStart ()

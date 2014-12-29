@@ -15,9 +15,12 @@ namespace Encircled
 		const float LINE_WIDTH = 1f;
 		const float SIDE_PROPORTION = 0.2f;
 
+		readonly float size;
+
 		readonly CCDrawNode arrow;
 		public float Angle {
 			set {
+				value = - value - 90;
 				if (value < -70 && value >= -180) {
 					arrow.Rotation = -70;
 				} else if (value < -70 && value < -180 || value > 70) {
@@ -26,12 +29,31 @@ namespace Encircled
 					arrow.Rotation = value;
 				}
 			}
+			get {
+				return - (arrow.RotationX - 90);
+			}
+		}
+		public CCPoint Direction {
+			get {
+				var angleRadian = CCMacros.CCDegreesToRadians(this.Angle);
+				return new CCPoint (
+					Convert.ToSingle (Math.Cos (angleRadian)), 
+					Convert.ToSingle (Math.Sin (angleRadian))
+				);
+			}
+		}
+		public CCPoint Head {
+			get {
+				var headFromZero = this.Direction * size;
+				return this.WorldToParentspace(this.ConvertToWorldspace(headFromZero));
+			}
 		}
 
 		public Arrow (float size, CCColor4F color)
 		{
 
 			// TAMAÑO TOTAL
+			this.size = size;
 			float side_X_projection = size * SIDE_PROPORTION;
 			this.ContentSize = new CCSize (side_X_projection * 2, size);
 

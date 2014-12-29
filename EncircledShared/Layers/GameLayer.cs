@@ -13,6 +13,7 @@ namespace Encircled
 	public class GameLayer : CCLayerColor
 	{
 		const float GAMEFIELD_PROPORTION = 0.85f;
+		const float ORB_INTERVAL = 1f;
 
 		GameField field;
 
@@ -34,8 +35,8 @@ namespace Encircled
 		void StartScheduling ()
 		{
 			Schedule (t => {
-                
-			}, 1.0f);
+				field.Shoot(ORB_INTERVAL);
+			}, ORB_INTERVAL);
 
 //            Schedule (t => CheckCollision ());
 //
@@ -73,9 +74,8 @@ namespace Encircled
 
 		void Aim (List<CCTouch> touches, CCEvent touchEvent)
 		{
-			var location = touches [0].LocationOnScreen;
-			location = this.ScreenToWorldspace (location);
-			field.Aim (location);
+			var location = touches [0].Location;
+			field.Direction = location;
 		}
 
 		protected override void AddedToScene ()
