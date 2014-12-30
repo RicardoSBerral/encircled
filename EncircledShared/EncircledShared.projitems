@@ -13,10 +13,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameOverLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameStartLayer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\GameField.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Elements\Orb.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Elements\OrbBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EncircledApplicationDelegate.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\Arrow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Field\Arrow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Field\GameField.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Field\Frame.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Field\" />
   </ItemGroup>
 </Project>

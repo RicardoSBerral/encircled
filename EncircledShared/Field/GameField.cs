@@ -12,19 +12,17 @@ namespace Encircled
 {
 	public class GameField : CCNode
 	{
-		const float LINE_WIDTH = 1f;
-		const float LIMIT_PROPORTION = 0.15f;
 		const float ARROW_PROPORTION = 0.8f;
 
-		readonly CCDrawNode bottomAndSides;
-		readonly CCDrawNode ceiling;
-		readonly CCDrawNode limit;
+		readonly Frame frame;
 		readonly Arrow arrow;
+		readonly b2World world;
 
 		readonly List<Orb> shooting;
 		readonly List<Orb> shot;
 		readonly List<Orb> nextOrb;
 		readonly CCPoint nextOrbPosition;
+		readonly float width_to_orb_proportion;
 
 		public CCPoint Head {
 			get {
@@ -47,44 +45,22 @@ namespace Encircled
 			}
 		}
 
-		public GameField (float height, CCColor4F color, float width_proportion = 720f / 1280f)
+		public GameField (float height, CCColor4F color, b2World world, float width_proportion = 720f / 1280f, float width_to_orb_proportion = 0.05f)
 		{
 
-			// TAMAÑO TOTAL
-			float width = height * width_proportion;
-			this.ContentSize = new CCSize (width, height);
+			this.width_to_orb_proportion = width_to_orb_proportion;
+			this.world = world;
 
-			// FONDO Y LADOS
-			CCPoint corner1 = CCPoint.Zero;
-			CCPoint corner2 = new CCPoint (width, 0f);
-			CCPoint corner3 = new CCPoint (width, height);
-			CCPoint corner4 = new CCPoint (0f, height);
-
-			bottomAndSides = new CCDrawNode ();
-			bottomAndSides.DrawSegment (corner1, corner2, LINE_WIDTH, color);
-			bottomAndSides.DrawSegment (corner2, corner3, LINE_WIDTH, color);
-			bottomAndSides.DrawSegment (corner4, corner1, LINE_WIDTH, color);
-			this.AddChild (bottomAndSides);
-
-			ceiling = new CCDrawNode ();
-			ceiling.DrawSegment (corner3, corner4, LINE_WIDTH, color);
-			this.AddChild (ceiling);
-
-			// LÍMITE
-			float limit_height = height * LIMIT_PROPORTION;
-			corner1 = new CCPoint (0f, limit_height);
-			corner2 = new CCPoint (width, limit_height);
-
-			limit = new CCDrawNode ();
-			limit.DrawSegment (corner1, corner2, LINE_WIDTH, color);
-			this.AddChild (limit);
+			// MARCO
+			frame = new Frame (height, color, world, width_proportion);
+			this.AddChild (frame);
 
 			// FLECHA
-			float arrow_length = limit_height * ARROW_PROPORTION;
-			corner1 = new CCPoint (width / 2, 0f);
+			float arrow_length = frame.Limit_Height * ARROW_PROPORTION;
+			var arrow_origin = new CCPoint (frame.Width / 2, 0f);
 
 			arrow = new Arrow (arrow_length, color) {
-				Position = corner1,
+				Position = arrow_origin,
 				AnchorPoint = CCPoint.Zero
 			};
 			this.AddChild (arrow);
@@ -93,21 +69,21 @@ namespace Encircled
 			shooting = new List<Orb> ();
 			shot = new List<Orb> ();
 			nextOrb = new List<Orb> ();
-			nextOrbPosition = new CCPoint (width * 4 / 5, limit_height * 1 / 2);
+			nextOrbPosition = new CCPoint (frame.Width * 4 / 5, frame.Limit_Height * 1 / 2);
 		}
 
-		public void Shoot (float growing_time, float width_to_orb_proportion = 0.05f)
+		public void Shoot (float growing_time)
 		{
 			Orb orb;
 			Orb newOrb;
 			// Primera bola
 			if (!nextOrb.Any ()) {
-				orb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
-				newOrb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
+				orb = new Orb (this.frame.Width * width_to_orb_proportion, world);
+				newOrb = new Orb (this.frame.Width * width_to_orb_proportion, world);
 			} else {
 				orb = nextOrb [0];
 				nextOrb.Remove (orb);
-				newOrb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
+				newOrb = new Orb (this.frame.Width * width_to_orb_proportion, world);
 			}
 
 			shooting.Add (orb);
@@ -139,16 +115,23 @@ namespace Encircled
 
 		public void CheckOrbsCollision ()
 		{
+			// TODO
 			foreach (var orb in shot) {
-				var box1 = orb.BoundingBoxTransformedToParent;
-				var box2 = bottomAndSides.BoundingBoxTransformedToParent;
-				if (orb.BoundingBoxTransformedToParent.IntersectsRect (bottomAndSides.BoundingBoxTransformedToParent)) {
-					orb.StopAllActions ();
-					orb.Direction = orb.Direction.InvertX;
-					orb.RunAction (Orb.Shoot (this.ContentSize.Height));
+				var collision = frame.CheckCollisionOrb (orb);
+				switch (collision) {
+				default:
+					break;
 				}
+			}
+		}
+
+		public void UpdateOrbs() {
+			foreach (var orb in this.shooting) {
+				orb.UpdateOrb ();
+			}
+			foreach (var orb in this.shot) {
+				orb.UpdateOrb ();
 			}
 		}
 	}
 }
-

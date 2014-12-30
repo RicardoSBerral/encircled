@@ -23,13 +23,23 @@ namespace Encircled
 
 		readonly CCDrawNode node;
 		readonly CCParticleSun sun;
-
+		private b2Body physicsBody;
 		readonly float orb_speed;
-		public float Radius { get; set; }
-		// TODO readonly Dictionary<string,CCAction> actions;
-		public CCPoint Direction { get; set; }
 
-		public Orb (float radius, float orb_speed = 50f)
+		public float Radius { get; set; }
+		public CCPoint Direction { get; set; }
+		public b2Body PhysicsBody { get { return physicsBody; } }
+		public override CCPoint Position {
+			get {
+				return base.Position;
+			}
+			set {
+				base.Position = value;
+				PhysicsBody.SetTransform (new b2Vec2 (value.X, value.Y), 0f);
+			}
+		}
+
+		public Orb (float radius, b2World world, float orb_speed = 50f)
 		{
 			// Copiar parámetros
 			this.Radius = radius;
@@ -51,8 +61,31 @@ namespace Encircled
 				sun = null;
 			}
 
-			// TODO Variables
-			// actions = new Dictionary<string, CCAction> ();
+			// Creación del hexágono
+			b2Vec2[] vertices = new b2Vec2[6];
+			float side = radius * (float) Math.Tan (Math.PI / 6) * 2;
+			float apothem = radius * (float) Math.Cos (Math.PI / 6);
+			vertices[0].Set( - side / 2, - radius);
+			vertices[1].Set(side / 2, - radius);
+			vertices[2].Set(apothem, 0f);
+			vertices[3].Set(side / 2, radius);
+			vertices[4].Set(- side / 2, radius);
+			vertices[5].Set(- apothem, 0);
+			var polygon = new b2PolygonShape();
+			polygon.Set(vertices, 6);
+
+			var fixtureDef = new b2FixtureDef();
+			fixtureDef.shape = polygon;
+//			fixtureDef.density = Mass;
+//			fixtureDef.friction = 0.1f;
+//			fixtureDef.restitution = 0.5f;
+
+			var def = new b2BodyDef ();
+			def.bullet = true;
+			def.fixedRotation = true;
+			def.type = b2BodyType.b2_dynamicBody;
+			physicsBody = world.CreateBody (def);
+			physicsBody.CreateFixture (fixtureDef);
 		}
 
 		public static CCFiniteTimeAction Grow (float growing_time = 0.2f)
@@ -65,12 +98,18 @@ namespace Encircled
 			return new CCCallFuncN( (node) => {
 				var orb = (Orb) node;
 				var dt = distance / orb.orb_speed;
-				orb.RunAction(new CCMoveTo(dt, orb.Position + orb.Direction * distance));
+				orb.PhysicsBody.ApplyLinearImpulse(new b2Vec2(1f,1f), new b2Vec2(orb.Direction.X, orb.Direction.Y));
 			});
 		}
 
 		public static CCFiniteTimeAction Teletransport (CCPoint position, float time = 0.2f) {
-			return new CCMoveTo (0f, position);
+
+			return new CCCallFuncN(
+						(node) => {
+				var orb = (Orb) node;
+						orb.Position = position;
+					}
+					);
 //			CCFiniteTimeAction[] actions = new CCFiniteTimeAction[3];
 //			// TODO CCEaseElastic
 //			actions [0] = new CCFadeOut (time / 2);
@@ -94,6 +133,38 @@ namespace Encircled
 			explosion.TotalParticles = CCRandom.Next(8, 12);
 			explosion.AutoRemoveOnFinish = true;
 			return explosion;
+		}
+
+		public void UpdateOrb()
+		{
+			this.Position = new CCPoint (PhysicsBody.Position.x, PhysicsBody.Position.y);
+			// TODO
+//			if (PhysicsBody != null)
+//			{
+//				b2Vec2 pos = PhysicsBody.Position;
+//
+//				float x = pos.x * ptmRatio;
+//				float y = pos.y * ptmRatio;
+//
+//				if (IgnoreAnchorPointForPosition) 
+//				{
+//					x += AnchorPointInPoints.X;
+//					y += AnchorPointInPoints.Y;
+//				}
+//
+//				// Make matrix
+//				float radians = PhysicsBody.Angle;
+//				var c = (float)Math.Cos (radians);
+//				var s = (float)Math.Sin (radians);
+//
+//				if (!AnchorPointInPoints.Equals (CCPoint.Zero)) 
+//				{
+//					x += c * -AnchorPointInPoints.X + -s * -AnchorPointInPoints.Y;
+//					y += s * -AnchorPointInPoints.X + c * -AnchorPointInPoints.Y;
+//				}
+//
+//				Position = new CCPoint(x, y);
+//			}
 		}
 	}
 }
