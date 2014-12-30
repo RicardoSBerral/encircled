@@ -38,7 +38,7 @@ namespace Encircled
 				field.Shoot(ORB_INTERVAL);
 			}, ORB_INTERVAL);
 
-//            Schedule (t => CheckCollision ());
+			Schedule (t => field.CheckOrbsCollision ());
 //
 //            Schedule (t => {
 //                world.Step (t, 8, 1);

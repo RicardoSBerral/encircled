@@ -25,11 +25,14 @@ namespace Encircled
 		readonly CCParticleSun sun;
 
 		readonly float orb_speed;
+		public float Radius { get; set; }
+		// TODO readonly Dictionary<string,CCAction> actions;
 		public CCPoint Direction { get; set; }
 
-		public Orb (float radius, float orb_speed = 5f)
+		public Orb (float radius, float orb_speed = 50f)
 		{
 			// Copiar parámetros
+			this.Radius = radius;
 			this.orb_speed = orb_speed;
 
 			// Dibujar círculo
@@ -47,20 +50,33 @@ namespace Encircled
 			} else {
 				sun = null;
 			}
+
+			// TODO Variables
+			// actions = new Dictionary<string, CCAction> ();
 		}
 
-		public CCFiniteTimeAction Grow (float growing_time = 0.2f)
+		public static CCFiniteTimeAction Grow (float growing_time = 0.2f)
 		{
 			return new CCSequence (new CCScaleTo (0f, 0f), new CCScaleTo (growing_time, 1f));
 		}
 
-		public CCFiniteTimeAction Shoot ()
+		public static CCFiniteTimeAction Shoot (float distance)
 		{
 			return new CCCallFuncN( (node) => {
 				var orb = (Orb) node;
-				var dt = 1 / orb.orb_speed;
-				orb.RunAction(new CCMoveBy(dt, orb.Position + orb.Direction));
+				var dt = distance / orb.orb_speed;
+				orb.RunAction(new CCMoveTo(dt, orb.Position + orb.Direction * distance));
 			});
+		}
+
+		public static CCFiniteTimeAction Teletransport (CCPoint position, float time = 0.2f) {
+			return new CCMoveTo (0f, position);
+//			CCFiniteTimeAction[] actions = new CCFiniteTimeAction[3];
+//			// TODO CCEaseElastic
+//			actions [0] = new CCFadeOut (time / 2);
+//			actions [1] = new CCMoveTo (0f, position);
+//			actions [2] = new CCFadeIn (time / 2);
+//			return new CCSequence (actions);
 		}
 
 		public void TrembleStart ()

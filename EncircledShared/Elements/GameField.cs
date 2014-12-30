@@ -16,15 +16,19 @@ namespace Encircled
 		const float LIMIT_PROPORTION = 0.15f;
 		const float ARROW_PROPORTION = 0.8f;
 
-		readonly CCDrawNode frame;
+		readonly CCDrawNode bottomAndSides;
+		readonly CCDrawNode ceiling;
 		readonly CCDrawNode limit;
 		readonly Arrow arrow;
 
-		List<Orb> shooting;
+		readonly List<Orb> shooting;
+		readonly List<Orb> shot;
+		readonly List<Orb> nextOrb;
+		readonly CCPoint nextOrbPosition;
 
 		public CCPoint Head {
 			get {
-				return this.WorldToParentspace(this.ConvertToWorldspace(arrow.Head));
+				return this.WorldToParentspace (this.ConvertToWorldspace (arrow.Head));
 			}
 		}
 
@@ -33,8 +37,8 @@ namespace Encircled
 				return arrow.Direction;
 			}
 			set {
-				var origin = this.WorldToParentspace(this.ConvertToWorldspace(arrow.Position));
-				var sub = origin.Sub(ref value);
+				var origin = this.WorldToParentspace (this.ConvertToWorldspace (arrow.Position));
+				var sub = origin.Sub (ref value);
 				arrow.Angle = CCMacros.CCRadiansToDegrees (sub.Angle);
 				foreach (var orb in shooting) {
 					orb.Position = arrow.Head;
@@ -50,18 +54,21 @@ namespace Encircled
 			float width = height * width_proportion;
 			this.ContentSize = new CCSize (width, height);
 
-			// MARCO
+			// FONDO Y LADOS
 			CCPoint corner1 = CCPoint.Zero;
 			CCPoint corner2 = new CCPoint (width, 0f);
 			CCPoint corner3 = new CCPoint (width, height);
 			CCPoint corner4 = new CCPoint (0f, height);
 
-			frame = new CCDrawNode ();
-			frame.DrawSegment (corner1, corner2, LINE_WIDTH, color);
-			frame.DrawSegment (corner2, corner3, LINE_WIDTH, color);
-			frame.DrawSegment (corner3, corner4, LINE_WIDTH, color);
-			frame.DrawSegment (corner4, corner1, LINE_WIDTH, color);
-			this.AddChild (frame);
+			bottomAndSides = new CCDrawNode ();
+			bottomAndSides.DrawSegment (corner1, corner2, LINE_WIDTH, color);
+			bottomAndSides.DrawSegment (corner2, corner3, LINE_WIDTH, color);
+			bottomAndSides.DrawSegment (corner4, corner1, LINE_WIDTH, color);
+			this.AddChild (bottomAndSides);
+
+			ceiling = new CCDrawNode ();
+			ceiling.DrawSegment (corner3, corner4, LINE_WIDTH, color);
+			this.AddChild (ceiling);
 
 			// LÍMITE
 			float limit_height = height * LIMIT_PROPORTION;
@@ -74,38 +81,73 @@ namespace Encircled
 
 			// FLECHA
 			float arrow_length = limit_height * ARROW_PROPORTION;
-			corner1 = new CCPoint(width / 2, 0f);
+			corner1 = new CCPoint (width / 2, 0f);
 
-			arrow = new Arrow (arrow_length, color)
-			{
+			arrow = new Arrow (arrow_length, color) {
 				Position = corner1,
 				AnchorPoint = CCPoint.Zero
 			};
 			this.AddChild (arrow);
 
-			// DISPARANDO
-			shooting = new List<Orb>();
+			// ORBES
+			shooting = new List<Orb> ();
+			shot = new List<Orb> ();
+			nextOrb = new List<Orb> ();
+			nextOrbPosition = new CCPoint (width * 4 / 5, limit_height * 1 / 2);
 		}
 
-		public void Shoot(float growing_time, float width_to_orb_proportion = 0.05f)
+		public void Shoot (float growing_time, float width_to_orb_proportion = 0.05f)
 		{
-			var orb = new Orb (this.ContentSize.Width * width_to_orb_proportion)
-			{
-				Position = arrow.Head,
-				Direction = arrow.Direction
-			};
+			Orb orb;
+			Orb newOrb;
+			// Primera bola
+			if (!nextOrb.Any ()) {
+				orb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
+				newOrb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
+			} else {
+				orb = nextOrb [0];
+				nextOrb.Remove (orb);
+				newOrb = new Orb (this.ContentSize.Width * width_to_orb_proportion);
+			}
+
 			shooting.Add (orb);
-			var sequence = new CCSequence (
-				orb.Grow(growing_time), 
-				new CCSequence(
-					orb.Shoot(),
-					new CCCallFunc( () => {
-						// this.RemoveChild(shooting);
-						shooting.Remove (orb);
-					})
-				));
+			nextOrb.Add (newOrb);
+			orb.Direction = arrow.Direction;
+
+			CCFiniteTimeAction[] actions = new CCFiniteTimeAction [3];
+			actions [0] = Orb.Teletransport (arrow.Head, growing_time);
+			// TODO actions [1] = new CCDelayTime (growing_time);
+			actions [1] = Orb.Shoot (this.ContentSize.Height);
+			actions [2] = new CCCallFunc (
+				() => {
+					// this.RemoveChild(shooting);
+					shooting.Remove (orb);
+					shot.Add (orb);
+				}
+			);
+
+			var sequence = new CCSequence (actions);
+
 			orb.RunAction (sequence);
+
+			newOrb.Position = nextOrbPosition;
+			newOrb.RunAction (Orb.Grow (growing_time));
+
 			this.AddChild (orb);
+			this.AddChild (newOrb);
+		}
+
+		public void CheckOrbsCollision ()
+		{
+			foreach (var orb in shot) {
+				var box1 = orb.BoundingBoxTransformedToParent;
+				var box2 = bottomAndSides.BoundingBoxTransformedToParent;
+				if (orb.BoundingBoxTransformedToParent.IntersectsRect (bottomAndSides.BoundingBoxTransformedToParent)) {
+					orb.StopAllActions ();
+					orb.Direction = orb.Direction.InvertX;
+					orb.RunAction (Orb.Shoot (this.ContentSize.Height));
+				}
+			}
 		}
 	}
 }
