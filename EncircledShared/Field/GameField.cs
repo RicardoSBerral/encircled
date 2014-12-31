@@ -14,15 +14,21 @@ namespace Encircled
 	{
 		const float ARROW_PROPORTION = 0.8f;
 
+		// Partes
 		readonly Frame frame;
 		readonly Arrow arrow;
+		readonly OrbBlock block;
 		readonly b2World world;
 
-		readonly List<Orb> shooting;
-		readonly List<Orb> shot;
-		readonly List<Orb> nextOrb;
+		readonly List<MovingOrb> nextOrb;
+		readonly List<MovingOrb> shot;
 		readonly CCPoint nextOrbPosition;
+
 		readonly float width_to_orb_proportion;
+
+		public CCSize PlaySize { get { return frame.PlaySize; } }
+		public CCSize StartSize { get { return frame.StartSize; } }
+		public float OrbRadius { get { return frame.PlaySize.Width * width_to_orb_proportion; } }
 
 		public CCPoint Head {
 			get {
@@ -30,18 +36,15 @@ namespace Encircled
 			}
 		}
 
-		public CCPoint Direction {
+		public CCVector2 Direction {
 			get {
 				return arrow.Direction;
 			}
 			set {
 				var origin = this.WorldToParentspace (this.ConvertToWorldspace (arrow.Position));
-				var sub = origin.Sub (ref value);
+				var valuePoint = new CCPoint (value.X, value.Y);
+				var sub = origin.Sub (ref valuePoint);
 				arrow.Angle = CCMacros.CCRadiansToDegrees (sub.Angle);
-				foreach (var orb in shooting) {
-					orb.Position = arrow.Head;
-					orb.Direction = arrow.Direction;
-				}
 			}
 		}
 
@@ -54,63 +57,62 @@ namespace Encircled
 			// MARCO
 			frame = new Frame (height, color, world, width_proportion);
 			this.AddChild (frame);
+			this.ContentSize = new CCSize (frame.PlaySize.Width, frame.PlaySize.Height + frame.StartSize.Height);
 
 			// FLECHA
-			float arrow_length = frame.Limit_Height * ARROW_PROPORTION;
-			var arrow_origin = new CCPoint (frame.Width / 2, 0f);
-
-			arrow = new Arrow (arrow_length, color) {
+			float angle = 90 - CCMacros.CCRadiansToDegrees( (float) Math.Atan (frame.StartSize.Height / (frame.PlaySize.Width / 2)) ); 
+			float arrow_length = frame.StartSize.Height * ARROW_PROPORTION;
+			var arrow_origin = new CCPoint (frame.PlaySize.Width / 2, 0f);
+			arrow = new Arrow (arrow_length, color, angle) {
 				Position = arrow_origin,
 				AnchorPoint = CCPoint.Zero
 			};
 			this.AddChild (arrow);
 
-			// ORBES
-			shooting = new List<Orb> ();
-			shot = new List<Orb> ();
-			nextOrb = new List<Orb> ();
-			nextOrbPosition = new CCPoint (frame.Width * 4 / 5, frame.Limit_Height * 1 / 2);
+			// ORBES MÓVILES
+			shot = new List<MovingOrb> ();
+			nextOrb = new List<MovingOrb> ();
+			nextOrbPosition = new CCPoint (frame.PlaySize.Width * 4 / 5, frame.StartSize.Height * 1 / 2);
+
+			// ORBES PARADOS
+			block = new OrbBlock (world, PlaySize, StartSize, OrbRadius);
+			block.Position = CCPoint.Zero;
+			block.AnchorPoint = CCPoint.Zero;
+			this.AddChild (block);
+
 		}
 
-		public void Shoot (float growing_time)
-		{
-			Orb orb;
-			Orb newOrb;
-			// Primera bola
-			if (!nextOrb.Any ()) {
-				orb = new Orb (this.frame.Width * width_to_orb_proportion, world);
-				newOrb = new Orb (this.frame.Width * width_to_orb_proportion, world);
-			} else {
-				orb = nextOrb [0];
-				nextOrb.Remove (orb);
-				newOrb = new Orb (this.frame.Width * width_to_orb_proportion, world);
-			}
-
-			shooting.Add (orb);
-			nextOrb.Add (newOrb);
-			orb.Direction = arrow.Direction;
-
-			CCFiniteTimeAction[] actions = new CCFiniteTimeAction [3];
-			actions [0] = Orb.Teletransport (arrow.Head, growing_time);
-			// TODO actions [1] = new CCDelayTime (growing_time);
-			actions [1] = Orb.Shoot (this.ContentSize.Height);
-			actions [2] = new CCCallFunc (
-				() => {
-					// this.RemoveChild(shooting);
-					shooting.Remove (orb);
-					shot.Add (orb);
-				}
-			);
-
-			var sequence = new CCSequence (actions);
-
-			orb.RunAction (sequence);
-
+		public void Grow (float growing_time) {
+			var newOrb = new MovingOrb (OrbRadius, world);
+			newOrb.Visible = false;
+			newOrb.PhysicsBody.SetActive (false);
 			newOrb.Position = nextOrbPosition;
 			newOrb.RunAction (Orb.Grow (growing_time));
 
-			this.AddChild (orb);
+			nextOrb.Add (newOrb);
 			this.AddChild (newOrb);
+		}
+
+		public void Shoot ()
+		{
+			if (!nextOrb.Any ()) {
+				// Primera bola
+				return;
+			}
+
+			MovingOrb orb = nextOrb [0];
+			nextOrb.Remove (orb);
+			orb.Direction = arrow.Direction;
+
+			CCFiniteTimeAction[] actions = new CCFiniteTimeAction [2];
+			actions [0] = MovingOrb.FromGrowingToShooting (arrow.Head);
+			actions [1] = new CCCallFuncN ( (node) => shot.Add (((MovingOrb) node)));
+			orb.RunAction (new CCSequence (actions));
+			this.AddChild (orb);
+		}
+
+		public void PushLine() {
+			block.PushLine ();
 		}
 
 		public void CheckOrbsCollision ()
@@ -126,9 +128,6 @@ namespace Encircled
 		}
 
 		public void UpdateOrbs() {
-			foreach (var orb in this.shooting) {
-				orb.UpdateOrb ();
-			}
 			foreach (var orb in this.shot) {
 				orb.UpdateOrb ();
 			}

@@ -12,11 +12,15 @@ namespace Encircled
 {
 	public class GameLayer : CCLayerColor
 	{
-		const float GAMEFIELD_PROPORTION = 0.85f;
-		const float ORB_INTERVAL = 1f;
+		public const float GAMEFIELD_PROPORTION = 0.85f;
+		public const float ORB_INTERVAL = 3f;
+		public const float NEWLINE_INTERVAL = 10f;
+		public const int PTM_RATIO = 32;
 
 		// Mundos
 		private b2World world;
+		CCBox2dDraw debugDraw;
+
 		private GameField field;
 
 		public GameLayer ()
@@ -37,13 +41,18 @@ namespace Encircled
 		void StartScheduling ()
 		{
 			Schedule (t => {
-				field.Shoot (ORB_INTERVAL);
+				field.Shoot();
+				field.Grow (ORB_INTERVAL);
 			}, ORB_INTERVAL);
 
-			Schedule (t => field.CheckOrbsCollision ());
+			Schedule (t => {
+				field.PushLine ();
+			}, NEWLINE_INTERVAL);
 
 			Schedule (t => {
 				world.Step (t, 8, 1);
+				field.CheckOrbsCollision ();
+				field.UpdateOrbs();
 			});
 		}
 
@@ -53,22 +62,19 @@ namespace Encircled
 
 			Scene.SceneResolutionPolicy = CCSceneResolutionPolicy.NoBorder;
 
+			InitPhysics ();
 			field = new GameField (
 				this.VisibleBoundsWorldspace.Size.Height * GAMEFIELD_PROPORTION,
 				new CCColor4F (CCColor4B.Black),
-				world)
-			{
-				AnchorPoint = CCPoint.AnchorMiddle,
-				Position = this.VisibleBoundsWorldspace.Center
-			};
+				world);
+			field.AnchorPoint = CCPoint.Zero;//CCPoint.AnchorMiddle;
+			field.Position = new CCPoint(field.PlaySize.Width, 0f);//this.VisibleBoundsWorldspace.Center;
 			this.AddChild (field);
 		}
 
 		public override void OnEnter ()
 		{
 			base.OnEnter ();
-
-			InitPhysics ();
 		}
 
 		void InitPhysics ()
@@ -80,6 +86,17 @@ namespace Encircled
 
 			world.SetAllowSleeping (true);
 			world.SetContinuousPhysics (true);
+
+			// TODO
+			EnableDebugMode();
+		}
+
+		void EnableDebugMode()
+		{
+			debugDraw = new CCBox2dDraw ("fonts/MarkerFelt-22", PTM_RATIO);//Constants.PTM_RATIO);
+			world.SetDebugDraw(debugDraw);
+			debugDraw.AppendFlags(b2DrawFlags.e_shapeBit);
+
 		}
 
 		void Aim (List<CCTouch> touches, CCEvent touchEvent)
@@ -113,6 +130,13 @@ namespace Encircled
 			scene.AddChild (layer);
 
 			return scene;
+		}
+		protected override void Draw()
+		{
+			base.Draw();
+			debugDraw.Begin();
+			world.DrawDebugData();
+			debugDraw.End();
 		}
 	}
 }

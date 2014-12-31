@@ -14,17 +14,20 @@ namespace Encircled
 	{
 		const float LINE_WIDTH = 1f;
 		const float SIDE_PROPORTION = 0.2f;
+		const int MAX_ANGLE_DEFAULT = 30;
 
 		readonly float size;
 
 		readonly CCDrawNode arrow;
+		readonly float max_angle;
+
 		public float Angle {
 			set {
 				value = - value - 90;
-				if (value < -70 && value >= -180) {
-					arrow.Rotation = -70;
-				} else if (value < -70 && value < -180 || value > 70) {
-					arrow.Rotation = 70;
+				if (value < -max_angle && value >= -180) {
+					arrow.Rotation = -max_angle;
+				} else if (value < -max_angle && value < -180 || value > max_angle) {
+					arrow.Rotation = max_angle;
 				} else {
 					arrow.Rotation = value;
 				}
@@ -33,7 +36,7 @@ namespace Encircled
 				return - (arrow.RotationX - 90);
 			}
 		}
-		public CCPoint Direction {
+		public CCVector2 Direction {
 			get {
 				var angleRadian = CCMacros.CCDegreesToRadians(this.Angle);
 				return new CCPoint (
@@ -49,13 +52,14 @@ namespace Encircled
 			}
 		}
 
-		public Arrow (float size, CCColor4F color)
+		public Arrow (float size, CCColor4F color, float max_angle = MAX_ANGLE_DEFAULT)
 		{
-
+		
 			// TAMAÑO TOTAL
 			this.size = size;
 			float side_X_projection = size * SIDE_PROPORTION;
 			this.ContentSize = new CCSize (side_X_projection * 2, size);
+			this.max_angle = max_angle;
 
 			// MARCO
 			CCPoint start = CCPoint.Zero;

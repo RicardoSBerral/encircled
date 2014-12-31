@@ -9,7 +9,6 @@
     <Import_RootNamespace>EncircledShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Extension\CCPhysicsSprite.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameOverLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameStartLayer.cs" />
@@ -19,6 +18,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Field\Arrow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Field\GameField.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Field\Frame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CCPhysicsSprite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CCDraw.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Elements\MovingOrb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Elements\StaticOrb.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Field\" />
