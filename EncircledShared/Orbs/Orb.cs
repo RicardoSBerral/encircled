@@ -12,6 +12,11 @@ namespace Encircled.Orbs
 {
 	public abstract class Orb : CCNode
 	{
+		#if DEBUG
+		public static int counter = 0;
+		public int count = Orb.counter++;
+		#endif
+
 		readonly static List<CCColor4B> colors = new List<CCColor4B> {
 			CCColor4B.Red,
 			CCColor4B.Blue,
@@ -24,6 +29,7 @@ namespace Encircled.Orbs
 		readonly CCParticleSun sun;
 
 		private readonly float radius;
+		private readonly CCColor4B color;
 		private readonly b2Fixture fixture;
 		private readonly b2Body physicsBody;
 		private CCPoint direction;
@@ -46,7 +52,15 @@ namespace Encircled.Orbs
 			}
 		}
 
+		public Orb (Orb orb, b2Fixture newFixture)
+			: this(orb.radius,orb.color,newFixture,orb.PhysicsBody)
+		{}
+
 		public Orb (float radius, b2Fixture fixture, b2Body physicsBody)
+			: this(radius, colors [CCRandom.Next (colors.Count)], fixture, physicsBody) 
+		{}
+
+		private Orb (float radius, CCColor4B color, b2Fixture fixture, b2Body physicsBody)
 		{
 			// Copiar parámetros
 			this.radius = radius;
@@ -56,7 +70,7 @@ namespace Encircled.Orbs
 
 			// Dibujar círculo
 			node = new CCDrawNode ();
-			CCColor4B color = colors [CCRandom.Next (colors.Count)];
+			this.color = color;
 			node.DrawSolidCircle (CCPoint.Zero, radius, color);
 			this.AddChild (node);
 
@@ -69,6 +83,22 @@ namespace Encircled.Orbs
 			} else {
 				sun = null;
 			}
+
+			// Posición
+			UpdateOrb ();
+
+			#if DEBUG
+			// Número
+			var label = new CCLabelTtf("" + count, "MarkerFelt", 22) {
+				Position = CCPoint.Zero,
+				Color = CCColor3B.Black,
+				HorizontalAlignment = CCTextAlignment.Center,
+				VerticalAlignment = CCVerticalTextAlignment.Center,
+				AnchorPoint = CCPoint.AnchorMiddle
+			};
+			AddChild (label);
+
+			#endif
 		}
 
 		public static CCFiniteTimeAction Grow (float growing_time = 0.2f)

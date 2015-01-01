@@ -47,6 +47,11 @@ namespace Encircled.Orbs.Factories
 		{
 			return new MovingOrb (radius, fixture, physicsBody, impulse);
 		}
+
+		protected override MovingOrb Instantiate<O2> (O2 orb, b2Fixture newFixture)
+		{
+			return new MovingOrb(orb, newFixture, impulse);
+		}
 	}
 }
 

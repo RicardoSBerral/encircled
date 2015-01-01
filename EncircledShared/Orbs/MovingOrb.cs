@@ -14,6 +14,11 @@ namespace Encircled.Orbs
 	{
 		readonly float impulse;
 
+		public MovingOrb (Orb orb, b2Fixture newFixture, float impulse) : base(orb, newFixture)
+		{
+			this.impulse = impulse;
+		}
+
 		public MovingOrb (float radius, b2Fixture fixture, b2Body physicsBody, float impulse) : base(radius, fixture, physicsBody)
 		{
 			// Copiar parámetros

@@ -38,9 +38,8 @@ namespace Encircled.Orbs.Factories
 
 			hexagonDef = new b2FixtureDef ();
 			hexagonDef.shape = polygon;
-			//			fixtureDef.density = Mass;
-			//			fixtureDef.friction = 0.1f;
-			//			fixtureDef.restitution = 0.5f;
+			hexagonDef.friction = 0f;
+			hexagonDef.restitution = 0f;
 
 			bodyDef = new b2BodyDef ();
 			bodyDef.bullet = true;
@@ -50,20 +49,17 @@ namespace Encircled.Orbs.Factories
 
 		public StaticOrb MovingToStaticOrb (MovingOrb orb)
 		{
-			// Creación del hexágono
-			orb.PhysicsBody.DestroyFixture (orb.Fixture);
-			var hexagon = orb.PhysicsBody.CreateFixture (FixtureDef);
-
-			// Creación de la nueva instancia
-			StaticOrb newOrb = new StaticOrb (Radius, hexagon, orb.PhysicsBody);
-			newOrb.Position = orb.Position;
-
-			return newOrb;
+			return ReplaceFixture<MovingOrb> (orb);
 		}
 
 		protected override StaticOrb Instantiate (float radius, b2Fixture fixture, b2Body physicsBody)
 		{
 			return new StaticOrb (radius, fixture, physicsBody);
+		}
+
+		protected override StaticOrb Instantiate<O2> (O2 orb, b2Fixture newFixture)
+		{
+			return new StaticOrb(orb, newFixture);
 		}
 	}
 }

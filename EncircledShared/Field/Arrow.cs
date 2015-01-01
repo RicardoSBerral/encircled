@@ -8,7 +8,7 @@ using Box2D.Common;
 using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
-namespace Encircled
+namespace Encircled.Field
 {
 	public class Arrow : CCNode
 	{

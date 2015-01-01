@@ -6,9 +6,10 @@
     <ProjectGuid>{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GoneBananas</RootNamespace>
-    <AssemblyName>GoneBananas</AssemblyName>
+    <RootNamespace>Encircled</RootNamespace>
+    <AssemblyName>Encircled</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>

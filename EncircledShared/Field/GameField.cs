@@ -11,7 +11,7 @@ using Box2D.Collision.Shapes;
 using Encircled.Orbs;
 using Encircled.Orbs.Factories;
 
-namespace Encircled
+namespace Encircled.Field
 {
 	public class GameField : CCNode
 	{
@@ -31,7 +31,7 @@ namespace Encircled
 		public OrbBlock Block { get { return block; } }
 		public b2World World { get { return world; } }
 
-		readonly List<MovingOrb> nextOrb;
+		readonly Queue<MovingOrb> nextOrb;
 		readonly List<MovingOrb> shot;
 		readonly CCPoint nextOrbPosition;
 
@@ -88,7 +88,7 @@ namespace Encircled
 
 			// ORBES MÓVILES
 			shot = new List<MovingOrb> ();
-			nextOrb = new List<MovingOrb> ();
+			nextOrb = new Queue<MovingOrb> ();
 			nextOrbPosition = new CCPoint (frame.PlaySize.Width * 4 / 5, frame.StartSize.Height * 1 / 2);
 
 			// ORBES PARADOS
@@ -105,13 +105,12 @@ namespace Encircled
 		}
 
 		public void Grow () {
-			var newOrb = factory.CreateOrb();
+			var newOrb = factory.CreateOrb(nextOrbPosition);
 			newOrb.Visible = false;
 			newOrb.PhysicsBody.SetActive (false);
-			newOrb.Position = nextOrbPosition;
 			newOrb.RunAction (Orb.Grow (growing_time));
 
-			nextOrb.Add (newOrb);
+			nextOrb.Enqueue (newOrb);
 			this.AddChild (newOrb);
 		}
 
@@ -122,8 +121,7 @@ namespace Encircled
 				return;
 			}
 
-			MovingOrb orb = nextOrb [0];
-			nextOrb.Remove (orb);
+			MovingOrb orb = nextOrb.Dequeue();
 			orb.Direction = arrow.Direction;
 
 			CCFiniteTimeAction[] actions = new CCFiniteTimeAction [2];
@@ -150,9 +148,14 @@ namespace Encircled
 		}
 
 		public void UpdateOrbs() {
-			foreach (var orb in this.shot) {
-				orb.UpdateOrb ();
-			}
+			shot.ForEach (orb => orb.UpdateOrb ());
+			block.UpdateOrbs ();
+		}
+
+		public void Remove(MovingOrb orb) {
+			orb.Visible = false;
+			this.RemoveChild (orb, true);
+			shot.Remove (orb);
 		}
 	}
 }

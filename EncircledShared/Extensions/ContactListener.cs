@@ -21,6 +21,13 @@ namespace Encircled
 		{
 		}
 
+		public override void BeginContact(b2Contact contact)
+		{
+		}
+		public override void EndContact(b2Contact contact)
+		{
+		}
+
 		public override void PreSolve(b2Contact contact, b2Manifold manifold)
 		{
 			StaticOrb s;
@@ -44,7 +51,12 @@ namespace Encircled
 				return;
 			}
 
-			Encircled.GameLayer.Instance.Field.Block.ReceiveOrb (s, m);
+			m.PhysicsBody.LinearVelocity = b2Vec2.Zero;
+			m.PhysicsBody.FixtureList.Friction = 0f;
+			m.PhysicsBody.FixtureList.Restitution = 0f;
+			m.PhysicsBody.LinearDamping = 5000f;
+
+			Encircled.GameLayer.Instance.Field.Block.ScheduleReceiveOrbs (s, m);
 		}
 
 		public override void PostSolve(b2Contact contact, ref b2ContactImpulse contactImpulse)

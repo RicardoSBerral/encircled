@@ -10,13 +10,13 @@ using Box2D.Collision.Shapes;
 
 using Encircled.Orbs;
 
-namespace Encircled
+namespace Encircled.Field
 {
 	public enum FramePart {BottomAndSides, Ceiling, Limit, None};
 	public class Frame : CCNode
 	{
-		const float LINE_WIDTH = 1f;
-		const float LIMIT_PROPORTION = 0.15f;
+		public const float LINE_WIDTH = 1f;
+		public const float LIMIT_PROPORTION = 0.15f;
 
 		private readonly CCSize playSize;
 		private readonly CCSize startSize;
@@ -24,9 +24,9 @@ namespace Encircled
 		public CCSize PlaySize { get { return playSize; } }
 		public CCSize StartSize { get { return startSize; } }
 
-		readonly b2Body bottomAndSides;
-		readonly b2Body ceiling;
-		readonly b2Body limit;
+		private readonly b2Body bottomAndSides;
+//		private readonly b2Body ceiling;
+		private readonly b2Body limit;
 
 		public Frame (float height, CCColor4F color, b2World world, float width_proportion = 720f / 1280f)
 		{
@@ -64,18 +64,19 @@ namespace Encircled
 
 			// TECHO
 			frame.DrawSegment (corner3, corner4, LINE_WIDTH, color);
-			b2Vec2[] ceilingV = new b2Vec2[2];
-			ceilingV [0] = new b2Vec2 (corner3.X / GameLayer.PTM_RATIO, corner3.Y / GameLayer.PTM_RATIO);
-			ceilingV [1] = new b2Vec2 (corner4.X / GameLayer.PTM_RATIO, corner4.Y / GameLayer.PTM_RATIO);
-			var ceilingS = new b2ChainShape ();
-			ceilingS.CreateChain (ceilingV, 2);
-			var ceilingF = new b2FixtureDef ();
-			ceilingF.shape = ceilingS;
-			var ceilingD = new b2BodyDef ();
-			ceilingD.type = b2BodyType.b2_staticBody;
-			ceilingD.position.Set (0f, 0f);
-			ceiling = world.CreateBody (ceilingD);
-			ceiling.CreateFixture (ceilingF);
+//			b2Vec2[] ceilingV = new b2Vec2[2];
+//			ceilingV [0] = new b2Vec2 (corner3.X / GameLayer.PTM_RATIO, corner3.Y / GameLayer.PTM_RATIO);
+//			ceilingV [1] = new b2Vec2 (corner4.X / GameLayer.PTM_RATIO, corner4.Y / GameLayer.PTM_RATIO);
+//			var ceilingS = new b2ChainShape ();
+//			ceilingS.CreateChain (ceilingV, 2);
+//			var ceilingF = new b2FixtureDef ();
+//			ceilingF.shape = ceilingS;
+//			ceilingF.isSensor = true;
+//			var ceilingD = new b2BodyDef ();
+//			ceilingD.type = b2BodyType.b2_staticBody;
+//			ceilingD.position.Set (0f, 0f);
+//			ceiling = world.CreateBody (ceilingD);
+//			ceiling.CreateFixture (ceilingF);
 
 			// LÍMITE
 			corner1 = new CCPoint (0f, limit_height);

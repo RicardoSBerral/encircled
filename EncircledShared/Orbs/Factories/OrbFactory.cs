@@ -27,8 +27,9 @@ namespace Encircled.Orbs.Factories
 			this.world = world;
 		}
 
-		public O CreateOrb()
+		public O CreateOrb(CCPoint direction)
 		{
+			BodyDef.position = new b2Vec2 (direction.X / GameLayer.PTM_RATIO, direction.Y / GameLayer.PTM_RATIO);
 			var physicsBody = world.CreateBody (BodyDef);
 			var fixture = physicsBody.CreateFixture (FixtureDef);
 
@@ -37,7 +38,19 @@ namespace Encircled.Orbs.Factories
 			return Instantiate (radius, fixture, physicsBody);
 		}
 
+		public O ReplaceFixture<O2> (O2 orb) where O2 : Orb
+		{
+			var body = orb.PhysicsBody;
+			for (var fixture = body.FixtureList; fixture != null; fixture = fixture.Next) {
+				body.DestroyFixture (fixture);
+			}
+			var newFixture = body.CreateFixture (FixtureDef);
+			body.LinearVelocity = b2Vec2.Zero;
+			return Instantiate<O2> (orb, newFixture);
+		}
+
 		protected abstract O Instantiate (float radius, b2Fixture fixture, b2Body physicsBody);
+		protected abstract O Instantiate<O2> (O2 orb, b2Fixture newFixture) where O2 : Orb;
 	}
 }
 

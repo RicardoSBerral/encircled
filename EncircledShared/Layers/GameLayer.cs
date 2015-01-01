@@ -19,11 +19,13 @@ namespace Encircled
 
 		// Físicas
 		private b2World world;
-		private CCBox2dDraw debugDraw;
 		private ContactListener contactListener;
+		#if DEBUG
+			private CCBox2dDraw debugDraw;
+		#endif
 
-		private GameField field;
-		public GameField Field { get { return field; } }
+		private Field.GameField field;
+		public Field.GameField Field { get { return field; } }
 
 		// Singleton
 		private static readonly GameLayer instance = new GameLayer();
@@ -70,13 +72,19 @@ namespace Encircled
 			Scene.SceneResolutionPolicy = CCSceneResolutionPolicy.NoBorder;
 
 			InitPhysics ();
-			field = new GameField (
+			field = new Field.GameField (
 				this.VisibleBoundsWorldspace.Size.Height * GAMEFIELD_PROPORTION,
 				new CCColor4F (CCColor4B.Black),
 				world,
 				ORB_INTERVAL);
-			field.AnchorPoint = CCPoint.Zero;//CCPoint.AnchorMiddle;
-			field.Position = new CCPoint(field.PlaySize.Width, 0f);//this.VisibleBoundsWorldspace.Center;
+			#if DEBUG
+				field.AnchorPoint = CCPoint.Zero;
+				field.Position = new CCPoint(field.PlaySize.Width, 0f);
+			#else
+				field.AnchorPoint = CCPoint.AnchorMiddle;
+				field.Position = this.VisibleBoundsWorldspace.Center;
+			#endif
+
 			this.AddChild (field);
 		}
 
@@ -96,16 +104,15 @@ namespace Encircled
 			world.SetContinuousPhysics (true);
 			world.SetContactListener (contactListener);
 
-			// TODO
-			EnableDebugMode();
-		}
-
-		void EnableDebugMode()
-		{
+			#if DEBUG
 			debugDraw = new CCBox2dDraw ("fonts/MarkerFelt-22", PTM_RATIO);//Constants.PTM_RATIO);
 			world.SetDebugDraw(debugDraw);
 			debugDraw.AppendFlags(b2DrawFlags.e_shapeBit);
-
+			debugDraw.AppendFlags(b2DrawFlags.e_aabbBit);
+			debugDraw.AppendFlags(b2DrawFlags.e_centerOfMassBit);
+			debugDraw.AppendFlags(b2DrawFlags.e_jointBit);
+			debugDraw.AppendFlags(b2DrawFlags.e_pairBit);
+			#endif
 		}
 
 		void Aim (List<CCTouch> touches, CCEvent touchEvent)
@@ -139,6 +146,8 @@ namespace Encircled
 
 			return scene;
 		}
+
+		#if DEBUG
 		protected override void Draw()
 		{
 			base.Draw();
@@ -146,5 +155,6 @@ namespace Encircled
 			world.DrawDebugData();
 			debugDraw.End();
 		}
+		#endif
 	}
 }
