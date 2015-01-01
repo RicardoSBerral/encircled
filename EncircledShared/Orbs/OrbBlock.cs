@@ -9,20 +9,31 @@ using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 using Box2D.Dynamics.Joints;
 
-namespace Encircled
+using Encircled.Orbs.Factories;
+
+namespace Encircled.Orbs
 {
 	public class OrbBlock : CCNode
 	{
-		readonly b2World world;
-		readonly List<StaticOrb> orbs;
-		readonly List<b2Joint> joints;
-		readonly CCSize playSize;
-		readonly CCSize startSize;
-		readonly float orb_radius;
+
+		// Constructores
+		private readonly StaticOrbFactory factory;
+
+		// Parámetros
+		private readonly CCSize playSize;
+		private readonly CCSize startSize;
+		private readonly float orb_radius;
 		private bool x_offset;
+		private readonly b2World world;
+
+		// Almacenamiento
+		private List<StaticOrb> nextLine;
+		private readonly List<StaticOrb> orbs;
+		private readonly List<b2Joint> joints;
 
 		public OrbBlock (b2World world, CCSize playSize, CCSize startSize, float orb_radius)
 		{
+			factory = new StaticOrbFactory (orb_radius, 1, world);
 			this.world = world;
 			this.playSize = playSize;
 			this.startSize = startSize;
@@ -30,8 +41,7 @@ namespace Encircled
 			orbs = new List<StaticOrb> ();
 			joints = new List<b2Joint> ();
 			x_offset = true;
-
-			// ¿Se quita después? Primera línea
+			nextLine = CreateLine ();
 
 		}
 
@@ -47,8 +57,8 @@ namespace Encircled
 				line_length = 0;
 			}
 			x_offset = !x_offset;
-			for ( ; line_length + orb_radius * 2 < playSize.Width; line_length += orb_radius * 2) {
-				var orb = new StaticOrb (orb_radius, world);
+			for ( ; line_length + orb_radius * 2 <= playSize.Width; line_length += orb_radius * 2) {
+				var orb = factory.CreateOrb ();
 				this.AddChild (orb);
 				orb.Position = new CCPoint(line_length + orb_radius, y);
 				orb.Visible = false;
@@ -75,24 +85,26 @@ namespace Encircled
 			);
 		}
 
-		public void ReceiveOrb (MovingOrb orb)
+		public void ReceiveOrb (StaticOrb hit, MovingOrb hitter)
 		{
-			StaticOrb newOrb = StaticOrb.MovingToStaticOrb(orb);
-			orb.RemoveFromParent (true);
+			StaticOrb newOrb = factory.MovingToStaticOrb(hitter);
+			hitter.RemoveFromParent (true);
+			this.AddChild (newOrb);
+			orbs.Add (newOrb);
+
+			StickOrbs (hit, newOrb);
 
 			// TODO Moverla al espacio correspondiente
 
 			// TODO ¿Es necesario?
 			// orb.PhysicsBody.LinearVelocity = 0;
-			this.AddChild (newOrb);
-			orbs.Add (newOrb);
 		}
 
-		public void StickOrbs (StaticOrb a, MovingOrb b)
+		private void StickOrbs (StaticOrb hit, StaticOrb hitter)
 		{
 			b2JointDef jointDef = new b2PrismaticJointDef ();
-			jointDef.BodyA = a.PhysicsBody;
-			jointDef.BodyB = b.PhysicsBody;
+			jointDef.BodyA = hit.PhysicsBody;
+			jointDef.BodyB = hitter.PhysicsBody;
 			jointDef.CollideConnected = false;
 
 			b2Joint joint = world.CreateJoint (jointDef);

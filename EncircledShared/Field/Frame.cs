@@ -8,6 +8,8 @@ using Box2D.Common;
 using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
+using Encircled.Orbs;
+
 namespace Encircled
 {
 	public enum FramePart {BottomAndSides, Ceiling, Limit, None};

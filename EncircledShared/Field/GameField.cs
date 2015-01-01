@@ -8,11 +8,17 @@ using Box2D.Common;
 using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
+using Encircled.Orbs;
+using Encircled.Orbs.Factories;
+
 namespace Encircled
 {
 	public class GameField : CCNode
 	{
 		const float ARROW_PROPORTION = 0.8f;
+
+		// Constructores
+		private readonly MovingOrbFactory factory;
 
 		// Partes
 		readonly Frame frame;
@@ -20,11 +26,17 @@ namespace Encircled
 		readonly OrbBlock block;
 		readonly b2World world;
 
+		public Frame Frame { get { return frame; } }
+		public Arrow Arrow { get { return arrow; } }
+		public OrbBlock Block { get { return block; } }
+		public b2World World { get { return world; } }
+
 		readonly List<MovingOrb> nextOrb;
 		readonly List<MovingOrb> shot;
 		readonly CCPoint nextOrbPosition;
 
 		readonly float width_to_orb_proportion;
+		readonly float growing_time;
 
 		public CCSize PlaySize { get { return frame.PlaySize; } }
 		public CCSize StartSize { get { return frame.StartSize; } }
@@ -48,11 +60,16 @@ namespace Encircled
 			}
 		}
 
-		public GameField (float height, CCColor4F color, b2World world, float width_proportion = 720f / 1280f, float width_to_orb_proportion = 0.05f)
+		public GameField (float height, CCColor4F color, b2World world, 
+			float growing_time,
+			float width_proportion = 720f / 1280f, 
+			float width_to_orb_proportion = 0.05f
+		)
 		{
-
+			// Copiar parámetros
 			this.width_to_orb_proportion = width_to_orb_proportion;
 			this.world = world;
+			this.growing_time = growing_time;
 
 			// MARCO
 			frame = new Frame (height, color, world, width_proportion);
@@ -80,10 +97,15 @@ namespace Encircled
 			block.AnchorPoint = CCPoint.Zero;
 			this.AddChild (block);
 
+			// Constructores
+			factory = new MovingOrbFactory (OrbRadius, 1, world);
+
+			// CRECER EL PRIMERO
+			Grow ();
 		}
 
-		public void Grow (float growing_time) {
-			var newOrb = new MovingOrb (OrbRadius, world);
+		public void Grow () {
+			var newOrb = factory.CreateOrb();
 			newOrb.Visible = false;
 			newOrb.PhysicsBody.SetActive (false);
 			newOrb.Position = nextOrbPosition;

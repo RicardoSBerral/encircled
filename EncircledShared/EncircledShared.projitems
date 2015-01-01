@@ -12,18 +12,22 @@
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameOverLayer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layers\GameStartLayer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\Orb.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\OrbBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EncircledApplicationDelegate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Field\Arrow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Field\GameField.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Field\Frame.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CCPhysicsSprite.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CCDraw.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\MovingOrb.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Elements\StaticOrb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Orb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\OrbBlock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\MovingOrb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\StaticOrb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\MovingOrbFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\OrbFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\StaticOrbFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContactListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Field\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Orbs\Factories\" />
   </ItemGroup>
 </Project>

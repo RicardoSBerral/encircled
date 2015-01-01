@@ -17,18 +17,25 @@ namespace Encircled
 		public const float NEWLINE_INTERVAL = 10f;
 		public const int PTM_RATIO = 32;
 
-		// Mundos
+		// Físicas
 		private b2World world;
-		CCBox2dDraw debugDraw;
+		private CCBox2dDraw debugDraw;
+		private ContactListener contactListener;
 
 		private GameField field;
+		public GameField Field { get { return field; } }
 
-		public GameLayer ()
+		// Singleton
+		private static readonly GameLayer instance = new GameLayer();
+		public static GameLayer Instance { get { return instance; } }
+
+		private GameLayer ()
 		{
 			var touchListener = new CCEventListenerTouchAllAtOnce ();
 			touchListener.OnTouchesBegan = Aim;
 			touchListener.OnTouchesMoved = Aim;
 			AddEventListener (touchListener, this);
+			contactListener = new ContactListener ();
 
 			Color = new CCColor3B (CCColor4B.White);
 			Opacity = 255;     
@@ -42,7 +49,7 @@ namespace Encircled
 		{
 			Schedule (t => {
 				field.Shoot();
-				field.Grow (ORB_INTERVAL);
+				field.Grow ();
 			}, ORB_INTERVAL);
 
 			Schedule (t => {
@@ -66,7 +73,8 @@ namespace Encircled
 			field = new GameField (
 				this.VisibleBoundsWorldspace.Size.Height * GAMEFIELD_PROPORTION,
 				new CCColor4F (CCColor4B.Black),
-				world);
+				world,
+				ORB_INTERVAL);
 			field.AnchorPoint = CCPoint.Zero;//CCPoint.AnchorMiddle;
 			field.Position = new CCPoint(field.PlaySize.Width, 0f);//this.VisibleBoundsWorldspace.Center;
 			this.AddChild (field);
@@ -86,6 +94,7 @@ namespace Encircled
 
 			world.SetAllowSleeping (true);
 			world.SetContinuousPhysics (true);
+			world.SetContactListener (contactListener);
 
 			// TODO
 			EnableDebugMode();
@@ -125,9 +134,8 @@ namespace Encircled
 		public static CCScene GameScene (CCWindow mainWindow)
 		{
 			var scene = new CCScene (mainWindow);
-			var layer = new GameLayer ();
 			
-			scene.AddChild (layer);
+			scene.AddChild (Instance);
 
 			return scene;
 		}

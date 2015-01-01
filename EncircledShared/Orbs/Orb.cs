@@ -8,7 +8,7 @@ using Box2D.Common;
 using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
-namespace Encircled
+namespace Encircled.Orbs
 {
 	public abstract class Orb : CCNode
 	{
@@ -22,11 +22,15 @@ namespace Encircled
 
 		readonly CCDrawNode node;
 		readonly CCParticleSun sun;
+
+		private readonly float radius;
+		private readonly b2Fixture fixture;
+		private readonly b2Body physicsBody;
 		private CCPoint direction;
 
-		protected internal abstract b2Fixture Fixture { get; }
-		public float Radius { get; set; }
-		public abstract b2Body PhysicsBody { get; }
+		public float Radius { get { return radius; } }
+		public b2Fixture Fixture { get { return fixture; } }
+		public b2Body PhysicsBody { get { return physicsBody; } }
 
 		public CCPoint Direction {
 			get { return direction; }
@@ -37,38 +41,18 @@ namespace Encircled
 				return base.Position;
 			}
 			set {
-				// TODO
-
-				float x = value.X;
-				float y = value.Y;
-
-				if (IgnoreAnchorPointForPosition) 
-				{
-					x += AnchorPointInPoints.X;
-					y += AnchorPointInPoints.Y;
-				}
-
-				// Make matrix
-				float radians = PhysicsBody.Angle;
-				var c = (float)Math.Cos (radians);
-				var s = (float)Math.Sin (radians);
-
-				if (!AnchorPointInPoints.Equals (CCPoint.Zero)) 
-				{
-					x += c * -AnchorPointInPoints.X + -s * -AnchorPointInPoints.Y;
-					y += s * -AnchorPointInPoints.X + c * -AnchorPointInPoints.Y;
-				}
-
-				base.Position = new CCPoint(x, y);
-				PhysicsBody.SetTransform (new b2Vec2 (x / GameLayer.PTM_RATIO, y / GameLayer.PTM_RATIO), 0f);
-				// TODO base.Position = value;
+				PhysicsBody.SetTransform (new b2Vec2 (value.X / GameLayer.PTM_RATIO, value.Y / GameLayer.PTM_RATIO), 0f);
+				base.Position = value;
 			}
 		}
 
-		public Orb (float radius)
+		public Orb (float radius, b2Fixture fixture, b2Body physicsBody)
 		{
 			// Copiar parámetros
-			this.Radius = radius;
+			this.radius = radius;
+			this.fixture = fixture;
+			this.physicsBody = physicsBody;
+			physicsBody.UserData = this;
 
 			// Dibujar círculo
 			node = new CCDrawNode ();
@@ -109,9 +93,8 @@ namespace Encircled
 
 		public void UpdateOrb ()
 		{
-			this.Position = new CCPoint (PhysicsBody.Position.x * GameLayer.PTM_RATIO, PhysicsBody.Position.y * GameLayer.PTM_RATIO);
+			base.Position = new CCPoint (PhysicsBody.Position.x * GameLayer.PTM_RATIO, PhysicsBody.Position.y * GameLayer.PTM_RATIO);
 		}
-
 	}
 }
 
