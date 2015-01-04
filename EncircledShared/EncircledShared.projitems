@@ -19,15 +19,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CCDraw.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Orbs\Orb.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Orbs\OrbBlock.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Orbs\MovingOrb.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Orbs\StaticOrb.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\MovingOrbFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\OrbFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Factories\StaticOrbFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContactListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\OrbFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SumExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\Cell.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Orbs\CellBlock.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Field\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Orbs\Factories\" />
   </ItemGroup>
 </Project>

@@ -9,7 +9,6 @@ using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
 using Encircled.Orbs;
-using Encircled.Orbs.Factories;
 
 namespace Encircled.Field
 {
@@ -18,29 +17,30 @@ namespace Encircled.Field
 		const float ARROW_PROPORTION = 0.8f;
 
 		// Constructores
-		private readonly MovingOrbFactory factory;
+		private readonly OrbFactory factory;
+		private readonly OrbComparer comparer;
 
 		// Partes
-		readonly Frame frame;
-		readonly Arrow arrow;
-		readonly OrbBlock block;
-		readonly b2World world;
+		private readonly Frame frame;
+		private readonly Arrow arrow;
+		private readonly OrbBlock block;
+		private readonly b2World world;
 
-		public Frame Frame { get { return frame; } }
-		public Arrow Arrow { get { return arrow; } }
-		public OrbBlock Block { get { return block; } }
-		public b2World World { get { return world; } }
-
-		readonly Queue<MovingOrb> nextOrb;
-		readonly List<MovingOrb> shot;
-		readonly CCPoint nextOrbPosition;
-
+		// Parámetros
 		readonly float width_to_orb_proportion;
 		readonly float growing_time;
 
+		// Propiedades
 		public CCSize PlaySize { get { return frame.PlaySize; } }
 		public CCSize StartSize { get { return frame.StartSize; } }
-		public float OrbRadius { get { return frame.PlaySize.Width * width_to_orb_proportion; } }
+		public OrbBlock Block { get { return block; } }
+		private float OrbRadius { get { return frame.PlaySize.Width * width_to_orb_proportion; } }
+		public bool GameShouldEnd { get { return block.GameShouldEnd; } }
+
+		// Almacenamiento
+		readonly Queue<Orb> nextOrb;
+		readonly HashSet<Orb> shot;
+		readonly CCPoint nextOrbPosition;
 
 		public CCPoint Head {
 			get {
@@ -86,29 +86,29 @@ namespace Encircled.Field
 			};
 			this.AddChild (arrow);
 
+			// Constructores
+			factory = new OrbFactory (OrbRadius, world);
+			comparer = new OrbComparer ();
+
 			// ORBES MÓVILES
-			shot = new List<MovingOrb> ();
-			nextOrb = new Queue<MovingOrb> ();
+			shot = new HashSet<Orb> (comparer);
+			nextOrb = new Queue<Orb> ();
 			nextOrbPosition = new CCPoint (frame.PlaySize.Width * 4 / 5, frame.StartSize.Height * 1 / 2);
 
 			// ORBES PARADOS
-			block = new OrbBlock (world, PlaySize, StartSize, OrbRadius);
+			block = new OrbBlock (world, factory, comparer, PlaySize, StartSize);
 			block.Position = CCPoint.Zero;
 			block.AnchorPoint = CCPoint.Zero;
 			this.AddChild (block);
-
-			// Constructores
-			factory = new MovingOrbFactory (OrbRadius, 1, world);
 
 			// CRECER EL PRIMERO
 			Grow ();
 		}
 
 		public void Grow () {
-			var newOrb = factory.CreateOrb(nextOrbPosition);
+			Orb newOrb = factory.CreateOrb(nextOrbPosition);
 			newOrb.Visible = false;
-			newOrb.PhysicsBody.SetActive (false);
-			newOrb.RunAction (Orb.Grow (growing_time));
+			newOrb.Grow (growing_time);
 
 			nextOrb.Enqueue (newOrb);
 			this.AddChild (newOrb);
@@ -121,13 +121,13 @@ namespace Encircled.Field
 				return;
 			}
 
-			MovingOrb orb = nextOrb.Dequeue();
+			Orb orb = nextOrb.Dequeue();
 			orb.Direction = arrow.Direction;
 
 			CCFiniteTimeAction[] actions = new CCFiniteTimeAction [2];
-			actions [0] = MovingOrb.FromGrowingToShooting (arrow.Head);
-			actions [1] = new CCCallFuncN ( (node) => shot.Add (((MovingOrb) node)));
-			orb.RunAction (new CCSequence (actions));
+			actions [0] = orb.Shoot (arrow.Head);
+			actions [1] = new CCCallFunc ( () => shot.Add (orb));
+			orb.RunActions (actions);
 			this.AddChild (orb);
 		}
 
@@ -135,26 +135,13 @@ namespace Encircled.Field
 			block.PushLine ();
 		}
 
-		public void CheckOrbsCollision ()
-		{
-			// TODO
-			foreach (var orb in shot) {
-				var collision = frame.CheckCollisionOrb (orb);
-				switch (collision) {
-				default:
-					break;
-				}
-			}
-		}
-
 		public void UpdateOrbs() {
-			shot.ForEach (orb => orb.UpdateOrb ());
+			shot.ToList().ForEach (orb => orb.UpdateOrb ());
 			block.UpdateOrbs ();
 		}
 
-		public void Remove(MovingOrb orb) {
-			orb.Visible = false;
-			this.RemoveChild (orb, true);
+		public void Remove(Orb orb) {
+			this.RemoveChild (orb, false);
 			shot.Remove (orb);
 		}
 	}

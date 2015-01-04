@@ -11,30 +11,16 @@ namespace Encircled
 
         public GameOverLayer (int score)
         {
-
             var touchListener = new CCEventListenerTouchAllAtOnce ();
             touchListener.OnTouchesEnded = (touches, ccevent) => Window.DefaultDirector.ReplaceScene (GameLayer.GameScene (Window));
 
             AddEventListener (touchListener, this);
 
-            scoreMessage = String.Format ("Game Over. You collected {0} bananas!", score);
+            scoreMessage = String.Format ("Game Over. ¡Destruiste {0} orbes!", score);
 
             Color = new CCColor3B (CCColor4B.Black);
 
             Opacity = 255;
-        }
-
-        public void AddMonkey ()
-        {
-            var spriteSheet = new CCSpriteSheet ("animations/monkey.plist");
-            var frame = spriteSheet.Frames.Find ((x) => x.TextureFilename.StartsWith ("frame"));
-           
-            var monkey = new CCSprite (frame) {
-                Position = new CCPoint (VisibleBoundsWorldspace.Size.Center.X + 20, VisibleBoundsWorldspace.Size.Center.Y + 300),
-                Scale = 0.5f
-            };
-
-            AddChild (monkey);
         }
 
         protected override void AddedToScene ()
@@ -43,7 +29,7 @@ namespace Encircled
 
             Scene.SceneResolutionPolicy = CCSceneResolutionPolicy.ShowAll;
 
-            var scoreLabel = new CCLabelTtf (scoreMessage, "arial", 22) {
+			var scoreLabel = new CCLabelTtf (scoreMessage, "MarkerFelt", 22) {
                 Position = new CCPoint (VisibleBoundsWorldspace.Size.Center.X, VisibleBoundsWorldspace.Size.Center.Y + 50),
                 Color = new CCColor3B (CCColor4B.Yellow),
                 HorizontalAlignment = CCTextAlignment.Center,
@@ -53,7 +39,7 @@ namespace Encircled
 
             AddChild (scoreLabel);
 
-            var playAgainLabel = new CCLabelTtf ("Tap to Play Again", "arial", 22) {
+            var playAgainLabel = new CCLabelTtf ("Tap to Play Again", "MarkerFelt", 22) {
                 Position = VisibleBoundsWorldspace.Size.Center,
                 Color = new CCColor3B (CCColor4B.Green),
                 HorizontalAlignment = CCTextAlignment.Center,
@@ -62,8 +48,6 @@ namespace Encircled
             };
 
             AddChild (playAgainLabel);
-
-            AddMonkey ();
         }
 
         public static CCScene SceneWithScore (CCWindow mainWindow, int score)

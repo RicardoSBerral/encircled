@@ -11,7 +11,6 @@ using Box2D.Collision;
 using Box2D.Collision.Shapes;
 
 using Encircled.Orbs;
-using Encircled.Orbs.Factories;
 
 namespace Encircled
 {
@@ -30,20 +29,29 @@ namespace Encircled
 
 		public override void PreSolve(b2Contact contact, b2Manifold manifold)
 		{
-			StaticOrb s;
-			MovingOrb m;
+			Orb s;
+			Orb m;
 
-			if (contact.FixtureA.Body.UserData is StaticOrb) {
-				s = (StaticOrb)contact.FixtureA.Body.UserData;
-				if (contact.FixtureB.Body.UserData is MovingOrb) {
-					m = (MovingOrb)contact.FixtureB.Body.UserData;
+			if (!(contact.FixtureA.Body.UserData is Orb)) {
+				return;
+			} else if (!(contact.FixtureB.Body.UserData is Orb)) {
+				return;
+			}
+
+			Orb a = (Orb) contact.FixtureA.Body.UserData;
+			Orb b = (Orb) contact.FixtureB.Body.UserData;
+
+			if (a.State == StateOrb.Stuck) {
+				s = a;
+				if (b.State == StateOrb.Shot) {
+					m = b;
 				} else {
 					return;
 				}
-			} else if (contact.FixtureA.Body.UserData is MovingOrb) {
-				m = (MovingOrb)contact.FixtureA.Body.UserData;
-				if (contact.FixtureB.Body.UserData is StaticOrb) {
-					s = (StaticOrb)contact.FixtureB.Body.UserData;
+			} else if (a.State == StateOrb.Shot) {
+				m = a;
+				if (b.State == StateOrb.Stuck) {
+					s = b;
 				} else {
 					return;
 				}
@@ -51,12 +59,9 @@ namespace Encircled
 				return;
 			}
 
-			m.PhysicsBody.LinearVelocity = b2Vec2.Zero;
-			m.PhysicsBody.FixtureList.Friction = 0f;
-			m.PhysicsBody.FixtureList.Restitution = 0f;
-			m.PhysicsBody.LinearDamping = 5000f;
-
-			Encircled.GameLayer.Instance.Field.Block.ScheduleReceiveOrbs (s, m);
+			m.SlowDown ();
+			m.UpdateOrb ();
+			Encircled.GameLayer.Instance.Field.Block.ReceiveOrb (s, m);
 		}
 
 		public override void PostSolve(b2Contact contact, ref b2ContactImpulse contactImpulse)

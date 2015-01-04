@@ -8,36 +8,54 @@ using Box2D.Common;
 using Box2D.Dynamics;
 using Box2D.Collision.Shapes;
 
+using Encircled.Extensions;
+
 namespace Encircled.Orbs
 {
-	public abstract class Orb : CCNode
+	public enum StateOrb
 	{
-		#if DEBUG
-		public static int counter = 0;
-		public int count = Orb.counter++;
-		#endif
+		Growing,
+		Shot,
+		Stuck,
+		Falling,
+		BeforeDestroying,
+		Destroyed,
+		Undefined
+	};
 
-		readonly static List<CCColor4B> colors = new List<CCColor4B> {
-			CCColor4B.Red,
-			CCColor4B.Blue,
-			CCColor4B.Yellow,
-			CCColor4B.Gray,
-			CCColor4B.Green
+	public class Orb : CCNode
+	{
+		// Constantes
+		public readonly static Dictionary<CCColor4B, int> colors = new Dictionary<CCColor4B, int> {
+			{ CCColor4B.Red, 35 },
+			{ CCColor4B.Blue, 35 },
+			{ CCColor4B.Yellow, 20 },
+			{ CCColor4B.Green, 18 },
+			{ CCColor4B.Gray, 50 /*2*/ },
 		};
+		const float BLINK_INTERVAL = 1f;
 
-		readonly CCDrawNode node;
-		readonly CCParticleSun sun;
+		// Contador
+		private static int counter = 0;
+		private readonly int id;
 
+		// Almacenamiento
+		private readonly CCNode node;
+		private b2Body physicsBody;
+		private Action<b2Body> updateBody;
+
+		// Parámetros
 		private readonly float radius;
+		private readonly float impulse;
 		private readonly CCColor4B color;
-		private readonly b2Fixture fixture;
-		private readonly b2Body physicsBody;
 		private CCPoint direction;
+		private StateOrb state;
 
+		// Propiedades
+		public int Id { get { return id; } }
 		public float Radius { get { return radius; } }
-		public b2Fixture Fixture { get { return fixture; } }
-		public b2Body PhysicsBody { get { return physicsBody; } }
-
+		public StateOrb State { get { return state; } }
+		public CCColor4B OrbColor { get { return color; } }
 		public CCPoint Direction {
 			get { return direction; }
 			set { direction = CCPoint.Normalize (value); }
@@ -47,83 +65,210 @@ namespace Encircled.Orbs
 				return base.Position;
 			}
 			set {
-				PhysicsBody.SetTransform (new b2Vec2 (value.X / GameLayer.PTM_RATIO, value.Y / GameLayer.PTM_RATIO), 0f);
+				physicsBody.SetTransform (new b2Vec2 (value.X / GameLayer.PTM_RATIO, value.Y / GameLayer.PTM_RATIO), 0f);
 				base.Position = value;
 			}
 		}
 
-		public Orb (Orb orb, b2Fixture newFixture)
-			: this(orb.radius,orb.color,newFixture,orb.PhysicsBody)
-		{}
-
-		public Orb (float radius, b2Fixture fixture, b2Body physicsBody)
-			: this(radius, colors [CCRandom.Next (colors.Count)], fixture, physicsBody) 
-		{}
-
-		private Orb (float radius, CCColor4B color, b2Fixture fixture, b2Body physicsBody)
+		public Orb (float radius, float impulse, b2Body physicsBody)
 		{
 			// Copiar parámetros
 			this.radius = radius;
-			this.fixture = fixture;
+			this.impulse = impulse;
 			this.physicsBody = physicsBody;
-			physicsBody.UserData = this;
+			this.physicsBody.UserData = this;
+			this.physicsBody.GravityScale = 0f;
+			this.state = StateOrb.Undefined;
+			this.updateBody = null;
 
 			// Dibujar círculo
-			node = new CCDrawNode ();
-			this.color = color;
-			node.DrawSolidCircle (CCPoint.Zero, radius, color);
-			this.AddChild (node);
-
-			// Dibujar brillo
-			if (color == CCColor4B.Gray) {
-				sun = new CCParticleSun (CCPoint.Zero);
-				sun.StartColor = new CCColor4F (CCColor3B.Red);
-				sun.EndColor = new CCColor4F (CCColor3B.Black);
-				this.AddChild (sun);
+			this.color = colors.Roulette ();
+			if (color != CCColor4B.Gray) {
+				CCDrawNode n = new CCDrawNode ();
+				n.DrawSolidCircle (CCPoint.Zero, radius, color);
+				node = n;
 			} else {
-				sun = null;
+				node = Blink (radius);
 			}
+			this.AddChild (node);
 
 			// Posición
 			UpdateOrb ();
 
+			// Número de identidad
+			id = System.Threading.Interlocked.Increment (ref counter);
+
 			#if DEBUG
-			// Número
-			var label = new CCLabelTtf("" + count, "MarkerFelt", 22) {
+			Debug ();
+			#endif
+		}
+
+		private static CCNode Blink(float radius) {
+
+			CCNode gray = new CCNode ();
+			var g = new CCDrawNode ();
+			g.DrawSolidCircle (CCPoint.Zero, radius, CCColor4B.Gray);
+			gray.AddChild (g);
+			CCNode black = new CCNode ();
+			var b = new CCDrawNode ();
+			b.DrawSolidCircle (CCPoint.Zero, radius, CCColor4B.Black);
+			black.AddChild (b);
+			CCNode node = new CCNode ();
+			node.AddChild (gray);
+			node.AddChild (black);
+
+			CCNode small = gray;
+			CCNode large = black;
+
+			var actions = new CCFiniteTimeAction[3];
+			actions [0] = new CCCallFunc( () => {
+				large.ZOrder = 0;
+				small.ZOrder = 1;
+				small.Scale = 0f;
+				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 1f));
+			});
+			actions [1] = new CCDelayTime (BLINK_INTERVAL);
+			actions [2] = new CCCallFunc (() => {
+				var temp = small;
+				small = large;
+				large = temp;
+			});
+			node.RepeatForever (actions);
+			return node;
+		}
+
+		public void Grow (float growing_time = 0.2f)
+		{
+			CCFiniteTimeAction[] actions = new CCFiniteTimeAction[3];
+			actions [0] = new CCScaleTo (0f, 0f);
+			actions [1] = new CCCallFunc (
+				() => {
+					state = StateOrb.Growing;
+					Visible = true;
+					updateBody = (body) => {
+						body.SetActive (false);
+						body.SetType(b2BodyType.b2_staticBody);
+					};
+				});
+			actions [2] = new CCScaleTo (growing_time, 1f);
+			RunActions (actions);
+		}
+
+		public CCFiniteTimeAction Shoot (CCPoint position)
+		{
+			return new CCCallFunc (
+				() => {
+					Position = position;
+					state = StateOrb.Shot;
+					updateBody = (body) => {
+						body.SetActive (true);
+						body.SetType(b2BodyType.b2_dynamicBody);
+						body.ApplyLinearImpulse (
+							new b2Vec2 (Direction.X, Direction.Y) * impulse / GameLayer.PTM_RATIO,
+							body.WorldCenter);
+					};
+				}
+			);
+		}
+
+		public void SlowDown ()
+		{
+			updateBody = (body) => {
+				body.LinearVelocity = b2Vec2.Zero;
+				body.FixtureList.Friction = 0f;
+				body.FixtureList.Restitution = 0f;
+				body.LinearDamping = 5000f;
+			};
+		}
+
+		public void Freeze (CCPoint position)
+		{
+			state = StateOrb.Stuck;
+			updateBody = (body) => {
+				// 'Slow down'
+				body.LinearVelocity = b2Vec2.Zero;
+				body.FixtureList.Friction = 0f;
+				body.FixtureList.Restitution = 0f;
+				body.LinearDamping = 5000f;
+
+				body.SetType (b2BodyType.b2_staticBody);
+				this.Position = position;
+			};
+		}
+
+		public void Destroy (float time = 0.3f)
+		{
+			var actions = new CCFiniteTimeAction[2];
+			actions [0] = new CCScaleTo (time, 0f);
+			actions [1] = new CCCallFunc (() => {
+				this.RemoveAllChildren (true);
+				this.RemoveFromParent (true);
+				state = StateOrb.BeforeDestroying;
+				updateBody = (body) => {
+					var world = body.World;
+					world.DestroyBody (body);
+					state = StateOrb.Destroyed;
+				};
+			});
+			RunActions(actions);
+		}
+
+		public void Fall ()
+		{
+			var actions = new CCFiniteTimeAction[3];
+			actions [0] = new CCCallFunc (() => {
+				state = StateOrb.Falling;
+				updateBody = (body) => {
+					body.SetType (b2BodyType.b2_dynamicBody);
+					body.GravityScale = 8f;
+				};
+			});
+			actions [1] = new CCDelayTime (4f);
+			actions [2] = new CCCallFunc (() =>Destroy ());
+			RunActions (actions);
+		}
+
+		public void UpdateOrb ()
+		{
+			if (physicsBody != null) {
+				if (updateBody != null) {
+					updateBody (physicsBody);
+					updateBody = null;
+				}
+			}
+			if (state == StateOrb.Destroyed) {
+				physicsBody = null;
+			}
+			if (physicsBody != null) {
+				base.Position = new CCPoint (physicsBody.Position.x * GameLayer.PTM_RATIO, physicsBody.Position.y * GameLayer.PTM_RATIO);
+			}
+		}
+
+		#if DEBUG
+		public void Debug ()
+		{
+			var debugNode = new CCLabelTtf ("" + Id, "MarkerFelt", 22) {
 				Position = CCPoint.Zero,
 				Color = CCColor3B.Black,
 				HorizontalAlignment = CCTextAlignment.Center,
 				VerticalAlignment = CCVerticalTextAlignment.Center,
 				AnchorPoint = CCPoint.AnchorMiddle
 			};
-			AddChild (label);
+			this.AddChild (debugNode);
+		}
+		#endif
+	}
 
-			#endif
+	public class OrbComparer : EqualityComparer<Orb>
+	{
+		public override bool Equals (Orb b1, Orb b2)
+		{
+			return b1.Id == b2.Id;
 		}
 
-		public static CCFiniteTimeAction Grow (float growing_time = 0.2f)
+		public override int GetHashCode (Orb bx)
 		{
-			CCFiniteTimeAction[] actions = new CCFiniteTimeAction[3];
-			actions [0] = new CCScaleTo (0f, 0f);
-			actions [1] = new CCCallFuncN(
-				node => { ((Orb) node).Visible = true; });
-			actions [2] = new CCScaleTo (growing_time, 1f);
-			return new CCSequence (actions);
-		}
-
-		public CCParticleExplosion Explode ()
-		{
-			this.RemoveFromParent ();
-			var explosion = new CCParticleExplosion (this.Position);
-			explosion.TotalParticles = CCRandom.Next (8, 12);
-			explosion.AutoRemoveOnFinish = true;
-			PhysicsBody.Dump ();
-			return explosion;
-		}
-
-		public void UpdateOrb ()
-		{
-			base.Position = new CCPoint (PhysicsBody.Position.x * GameLayer.PTM_RATIO, PhysicsBody.Position.y * GameLayer.PTM_RATIO);
+			return bx.Id.GetHashCode ();
 		}
 	}
 }

@@ -12,9 +12,9 @@ namespace Encircled.Field
 {
 	public class Arrow : CCNode
 	{
-		const float LINE_WIDTH = 1f;
-		const float SIDE_PROPORTION = 0.2f;
-		const int MAX_ANGLE_DEFAULT = 30;
+		public const float LINE_WIDTH = 1f;
+		public const float SIDE_PROPORTION = 0.2f;
+		public const int MAX_ANGLE_DEFAULT = 40;
 
 		readonly float size;
 

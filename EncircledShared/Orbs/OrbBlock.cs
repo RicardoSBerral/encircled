@@ -6,22 +6,28 @@ using System.Linq;
 
 using Box2D.Common;
 using Box2D.Dynamics;
+using Box2D.Collision;
 using Box2D.Collision.Shapes;
 using Box2D.Dynamics.Joints;
 
-using Encircled.Orbs.Factories;
+using Encircled.Orbs;
 
 namespace Encircled.Orbs
 {
 	public class OrbBlock : CCNode
 	{
+		// Constantes
+		public const int MIN_SAME_COLOR = 3;
+
 		// Constructores
-		private readonly StaticOrbFactory factory;
+		private readonly OrbFactory factory;
+		private readonly OrbComparer comparer;
 
 		// Parámetros
 		private readonly CCSize playSize;
 		private readonly CCSize startSize;
 		private readonly float orb_radius;
+		private readonly float orb_radius_proj;
 		private bool x_offset;
 
 		// Físicas
@@ -29,70 +35,42 @@ namespace Encircled.Orbs
 		private readonly float stick_delay;
 
 		// Almacenamiento
-		private List<StaticOrb> nextLine;
-		private readonly List<StaticOrb> orbs;
-		private readonly Queue<Tuple<StaticOrb,MovingOrb>> receiving;
-		private List<List<CCPoint>> cells;
+		private readonly List<Orb> nextLine;
+		private readonly Queue<Orb> receiving;
+		private HashSet<Orb> toBeDestroyed;
+		private readonly CellBlock cellBlock;
 
 		// Propiedades
 		public float StickDelay { get { return stick_delay; } }
+		public bool GameShouldEnd { get { return cellBlock.GameShouldEnd; } }
 
-		// Debug
-		#if DEBUG
-		private readonly List<CCDrawNode> dots;
-		#endif
 
-		public OrbBlock (b2World world, CCSize playSize, CCSize startSize, float orb_radius, float stick_delay = 0.1f)
+		public OrbBlock (b2World world, OrbFactory factory, OrbComparer comparer, CCSize playSize, CCSize startSize, float stick_delay = 0.05f)
 		{
-			factory = new StaticOrbFactory (orb_radius, 1, world);
+			this.factory = factory;
+			this.comparer = comparer;
 			this.world = world;
 			this.playSize = playSize;
 			this.startSize = startSize;
-			this.orb_radius = orb_radius;
+			this.orb_radius = factory.Radius;
+			this.orb_radius_proj = orb_radius * (float) Math.Sqrt (2f / 3f);
 			this.stick_delay = stick_delay;
-			orbs = new List<StaticOrb> ();
-			x_offset = true;
-			nextLine = CreateLine ();
-			receiving = new Queue<Tuple<StaticOrb,MovingOrb>> ();
-			cells = new List<List<CCPoint>> ();
+			this.x_offset = true;
+			this.nextLine = CreateLine();
+			this.receiving = new Queue<Orb> ();
+			this.toBeDestroyed = new HashSet<Orb> (comparer);
 
-			//Debug
-			#if DEBUG
-			dots = new List<CCDrawNode> ();
-			#endif
-
-			// Cálculo de las celdas
-			bool _x_offset = false;
-			for (float y = startSize.Height + playSize.Height - orb_radius; 
-				y - orb_radius >= startSize.Height;
-				y -= orb_radius * 2) {
-				float x = orb_radius;
-				if (_x_offset) {
-					x += orb_radius;
-				}
-				_x_offset = !_x_offset;
-				var yCells = new List<CCPoint> ();
-				cells.Add (yCells);
-				for (;
-					x + orb_radius <= playSize.Width;
-					x += orb_radius * 2) {
-					var cell = new CCPoint (x, y);
-					yCells.Add (cell);
-					#if DEBUG
-					var node = new CCDrawNode ();
-					node.Position = cell;
-					node.DrawDot (CCPoint.Zero, 5f, new CCColor4F (CCColor4B.Black));
-					dots.Add (node);
-					this.AddChild (node);
-					#endif
-				}
-			}
+			// Celdas
+			cellBlock = new CellBlock (playSize, startSize, orb_radius, orb_radius_proj);
+			cellBlock.Position = CCPoint.Zero;
+			cellBlock.AnchorPoint = CCPoint.Zero;
+			this.AddChild (cellBlock);
 		}
 
-		private List<StaticOrb> CreateLine ()
+		private List<Orb> CreateLine ()
 		{
-			float y = startSize.Height + playSize.Height + orb_radius;
-			List<StaticOrb> line = new List<StaticOrb> ();
+			float y = startSize.Height + playSize.Height + orb_radius_proj;
+			List<Orb> line = new List<Orb> ();
 
 			float x = orb_radius;
 			if (x_offset) {
@@ -102,98 +80,51 @@ namespace Encircled.Orbs
 			for (; x + orb_radius <= playSize.Width; x += orb_radius * 2) {
 				var position = new CCPoint (x, y);
 				var orb = factory.CreateOrb (position);
-				// TODO orb.Visible = false;
-				orb.PhysicsBody.SetType (b2BodyType.b2_staticBody);
-				line.Add (orb);
+				orb.Freeze (position);
+				orb.Visible = false;
 				this.AddChild (orb);
+				line.Add (orb);
 			}
 			return line;
 		}
 
 		public void PushLine ()
 		{
-			nextLine.ForEach (
-				orb => {
-					orbs.Add (orb);
-					orb.Visible = true;
-				}
-			);
-			orbs.ForEach (
-				orb => {
-					orb.Position = new CCPoint (orb.Position.X, orb.Position.Y - orb_radius * 2);
-				}
-			);
-			cells = cells.Select<List<CCPoint>,List<CCPoint>> (
-				yCells => {
-					bool derecha = yCells.First().X == orb_radius;
-					var newYCells = yCells.Select (
-						cell => {
-							if (derecha) {
-								cell.X += orb_radius;
-							} else {
-								cell.X -= orb_radius;
-							}
-							return cell;
-						}).ToList ();
-					if (derecha) {
-						newYCells.Remove(newYCells.Last());
-					} else {
-						newYCells.Add(new CCPoint(playSize.Width - orb_radius, newYCells.First().Y));
-					}
-					return newYCells;
-				}).ToList ();
-			#if DEBUG
-			dots.ForEach(dot => this.RemoveChild(dot,true));
-			dots.Clear();
-
-			cells.ForEach(yCells => yCells.ForEach( cell => {
-				var node = new CCDrawNode ();
-				node.Position = cell;
-				node.DrawDot (CCPoint.Zero, 5f, new CCColor4F (CCColor4B.Black));
-				dots.Add (node);
-				this.AddChild (node);
-			}));
-			#endif
-
-			nextLine = CreateLine ();
+			// Actualizamos desde el bloque de celdas
+			nextLine.ForEach (orb => this.RemoveChild (orb));
+			lock (cellBlock) {
+				cellBlock.ShiftCells (nextLine, x_offset);
+			}
+			nextLine.Clear ();
+			nextLine.AddRange (CreateLine ());
 		}
 
-		public void ScheduleReceiveOrbs (StaticOrb hit, MovingOrb hitter)
+		public void ReceiveOrb (Orb hit, Orb hitter)
 		{
-			receiving.Enqueue (new Tuple<StaticOrb,MovingOrb> (hit, hitter));
-		}
-
-		private void ReceiveOrb (StaticOrb hit, MovingOrb hitter)
-		{
-			StaticOrb newOrb = factory.MovingToStaticOrb (hitter);
 			GameLayer.Instance.Field.Remove (hitter);
-			this.AddChild (newOrb);
-			orbs.Add (newOrb);
+			receiving.Enqueue (hitter);
+			this.AddChild (hitter);
 
-			StickOrbs (hit, newOrb);
+			var cell = StickOrbs (hit, hitter);
+			DestroySameColor (cell);
 		}
 
-		private void StickOrbs (StaticOrb hit, StaticOrb hitter)
+		private Cell StickOrbs (Orb hit, Orb hitter)
 		{
-			hitter.PhysicsBody.LinearVelocity = b2Vec2.Zero;
-			hitter.PhysicsBody.FixtureList.Restitution = 0f;
+			// Insertar el orbe en la celda
+			Cell cell;
+			lock (cellBlock) {
+				cell = cellBlock.ReceiveOrb (hitter);
+			}
 
-			CCPoint cell = cells.SelectMany(i => i).Aggregate ((a, b) => 
-				CCPoint.Distance (a, hitter.Position) < CCPoint.Distance (b, hitter.Position) ? a : b);
+			return cell;
+		}
 
-			b2DistanceJointDef jointDef = new b2DistanceJointDef();
-			jointDef.BodyA = hit.PhysicsBody;
-			jointDef.BodyB = hitter.PhysicsBody;
-			jointDef.CollideConnected = true;
-			var joint = (b2DistanceJoint) world.CreateJoint(jointDef);
-
-			var actions = new CCFiniteTimeAction[2];
-			actions [0] = new CCMoveTo (StickDelay, cell);
-			actions [1] = new CCCallFuncN (node => {
-				((StaticOrb)node).Freeze ();
-				world.DestroyJoint(joint);
-			});
-			hitter.RunActions (actions);
+		private void DestroySameColor (Cell cell)
+		{
+			lock (cellBlock) {
+				cellBlock.DestroySameColor (cell, MIN_SAME_COLOR);
+			}
 		}
 
 		public void TrembleStart ()
@@ -206,13 +137,25 @@ namespace Encircled.Orbs
 
 		public void UpdateOrbs ()
 		{
-			while (receiving.Any ()) {
-				var pair = receiving.Dequeue ();
-				ReceiveOrb (pair.Item1, pair.Item2);
+			foreach (var orb in nextLine) {
+				orb.UpdateOrb ();
 			}
-			nextLine.ForEach (orb => orb.UpdateOrb ());
-			orbs.ForEach (orb => orb.UpdateOrb ());
+			while (receiving.Any()) {
+				receiving.Dequeue().UpdateOrb ();
+			}
+				
+			cellBlock.UpdateOrbs (ref toBeDestroyed);
+			var toBeRemoved = new List<Orb> ();
+
+			foreach (var orb in toBeDestroyed) {
+				orb.UpdateOrb ();
+				if (orb.State == StateOrb.Destroyed) {
+					toBeRemoved.Add (orb);
+				}
+			}
+			foreach (var orb in toBeRemoved) {
+				toBeDestroyed.Remove (orb);
+			}
 		}
 	}
 }
-

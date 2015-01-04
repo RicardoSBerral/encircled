@@ -21,7 +21,7 @@ namespace Encircled
 		private b2World world;
 		private ContactListener contactListener;
 		#if DEBUG
-			private CCBox2dDraw debugDraw;
+		private CCBox2dDraw debugDraw;
 		#endif
 
 		private Field.GameField field;
@@ -33,10 +33,16 @@ namespace Encircled
 
 		private GameLayer ()
 		{
+			// Interacción con el usuario
 			var touchListener = new CCEventListenerTouchAllAtOnce ();
-			touchListener.OnTouchesBegan = Aim;
-			touchListener.OnTouchesMoved = Aim;
+			touchListener.OnTouchesBegan = ListenerTouch;
+			touchListener.OnTouchesMoved = ListenerTouch;
 			AddEventListener (touchListener, this);
+
+			var mouseListener = new CCEventListenerMouse ();
+			mouseListener.OnMouseMove = ListenerMouse;
+
+			// Interacción con la simulación física
 			contactListener = new ContactListener ();
 
 			Color = new CCColor3B (CCColor4B.White);
@@ -44,6 +50,7 @@ namespace Encircled
 
 			StartScheduling ();
 
+			// TODO
 			//CCSimpleAudioEngine.SharedEngine.PlayBackgroundMusic ("Sounds/backgroundMusic", true);
 		}
 
@@ -60,7 +67,6 @@ namespace Encircled
 
 			Schedule (t => {
 				world.Step (t, 8, 1);
-				field.CheckOrbsCollision ();
 				field.UpdateOrbs();
 			});
 		}
@@ -97,7 +103,7 @@ namespace Encircled
 		{
 			CCSize s = Layer.VisibleBoundsWorldspace.Size;
 
-			var gravity = b2Vec2.Zero;
+			var gravity = new b2Vec2(0.0f, -8.0f);
 			world = new b2World (gravity);
 
 			world.SetAllowSleeping (true);
@@ -105,7 +111,7 @@ namespace Encircled
 			world.SetContactListener (contactListener);
 
 			#if DEBUG
-			debugDraw = new CCBox2dDraw ("fonts/MarkerFelt-22", PTM_RATIO);//Constants.PTM_RATIO);
+			debugDraw = new CCBox2dDraw ("fonts/MarkerFelt-22", PTM_RATIO);
 			world.SetDebugDraw(debugDraw);
 			debugDraw.AppendFlags(b2DrawFlags.e_shapeBit);
 			debugDraw.AppendFlags(b2DrawFlags.e_aabbBit);
@@ -115,16 +121,24 @@ namespace Encircled
 			#endif
 		}
 
-		void Aim (List<CCTouch> touches, CCEvent touchEvent)
+		void ListenerTouch (List<CCTouch> touches, CCEvent touchEvent)
 		{
-			var location = touches [0].Location;
+			Aim (touches [0].Location);
+		}
+
+		void ListenerMouse (CCEventMouse mouseEvent)
+		{
+			Aim(new CCPoint(mouseEvent.CursorX,mouseEvent.CursorY));
+		}
+
+		void Aim (CCPoint location)
+		{
 			field.Direction = location;
 		}
 
 		bool ShouldEndGame ()
 		{
-			// TODO return elapsedTime > GAME_DURATION;
-			return false;
+			return field.GameShouldEnd;
 		}
 
 		void EndGame ()
