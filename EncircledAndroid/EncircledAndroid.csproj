@@ -16,6 +16,7 @@
     <AssemblyName>EncircledAndroid</AssemblyName>
     <TargetFrameworkVersion>v4.2</TargetFrameworkVersion>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+    <BundleAssemblies>true</BundleAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,7 +28,6 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <MandroidI18n>west</MandroidI18n>
-    <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -37,9 +37,8 @@
     <ConsolePause>false</ConsolePause>
     <MandroidI18n>west</MandroidI18n>
     <AndroidSupportedAbis>armeabi;armeabi-v7a;x86</AndroidSupportedAbis>
-    <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
-    <BundleAssemblies>true</BundleAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -72,7 +71,6 @@
     <None Include="Assets\AboutAssets.txt" />
     <None Include="Properties\AndroidManifest.xml" />
     <None Include="packages.config" />
-    <None Include="Assets\Content\fonts\Parchment-40.xnb" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\Main.axml" />
@@ -84,19 +82,10 @@
   <ItemGroup>
     <Folder Include="Assets\Content\" />
     <Folder Include="Assets\Content\fonts\" />
-    <Folder Include="Assets\Content\hd\" />
-    <Folder Include="Assets\Content\Sounds\" />
-    <Folder Include="Assets\Content\hd\animations\" />
+    <Folder Include="Resources\drawable\" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidAsset Include="Assets\Content\hd\animations\monkey.plist" />
-    <AndroidAsset Include="Assets\Content\hd\animations\monkey.png" />
-    <AndroidAsset Include="Assets\Content\Sounds\tap.mp3" />
-    <AndroidAsset Include="Assets\Content\fonts\arial-22.xnb" />
-    <AndroidAsset Include="Assets\Content\hd\cloud.png" />
-    <AndroidAsset Include="Assets\Content\hd\grass.png" />
-    <AndroidAsset Include="Assets\Content\hd\balls.png" />
-    <AndroidAsset Include="Assets\Content\Sounds\backgroundMusic.mp3" />
-    <AndroidAsset Include="Assets\Content\fonts\MarkerFelt-22.xnb" />
+    <AndroidAsset Include="Assets\Content\fonts\StoryBook-50.xnb" />
+    <AndroidAsset Include="Assets\Content\fonts\Parchment-150.xnb" />
   </ItemGroup>
 </Project>

@@ -3,37 +3,33 @@ using CocosSharp;
 
 namespace Encircled
 {
-    public class EncircledApplicationDelegate : CCApplicationDelegate
-    {
 
-        public override void ApplicationDidFinishLaunching (CCApplication application, CCWindow mainWindow)
+    public class EncircledApplicationDelegate : CCApplicationDelegate
+	{
+		public readonly string bmPath;
+		public readonly string efPath;
+
+		public override void ApplicationDidFinishLaunching (CCApplication application, CCWindow mainWindow)
         {
             application.PreferMultiSampling = false;
             application.ContentRootDirectory = "Content";
 
-			CCSimpleAudioEngine.SharedEngine.PreloadEffect ("Sounds\\pew-pew-lei");
             CCSize winSize = mainWindow.WindowSizeInPixels;
             mainWindow.SetDesignResolutionSize(winSize.Width, winSize.Height, CCSceneResolutionPolicy.ExactFit);
 
 			CCScene scene = GameStartLayer.GameStartLayerScene(mainWindow);
-            mainWindow.RunWithScene (scene);
+			mainWindow.RunWithScene (scene);
         }
 
         public override void ApplicationDidEnterBackground (CCApplication application)
         {
             // stop all of the animation actions that are running.
             application.Paused = true;
-
-            // if you use SimpleAudioEngine, your music must be paused
-            CCSimpleAudioEngine.SharedEngine.PauseBackgroundMusic ();
         }
 
         public override void ApplicationWillEnterForeground (CCApplication application)
         {
             application.Paused = false;
-
-            // if you use SimpleAudioEngine, your background music track must resume here. 
-            CCSimpleAudioEngine.SharedEngine.ResumeBackgroundMusic ();
         }
     }
 }

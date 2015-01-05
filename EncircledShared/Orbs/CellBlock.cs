@@ -119,7 +119,7 @@ namespace Encircled.Orbs
 			}
 
 			cell.CurrentOrb = orb;
-			this.AddChild (orb, -1); // TODO Z-order?
+			this.AddChild (orb);
 
 			#if DEBUG
 			Debug(NextCells(cell), cell.CurrentOrb.OrbColor);
@@ -150,7 +150,7 @@ namespace Encircled.Orbs
 			for (int x = 0; x < nextLine.Count; x++) {
 				nextLine [x].CurrentOrb = newOrbs [x];
 				newOrbs [x].Visible = true;
-				this.AddChild (newOrbs [x], -1); // TODO Z-order?
+				this.AddChild (newOrbs [x]);
 			}
 			cells.Insert (0, nextLine);
 

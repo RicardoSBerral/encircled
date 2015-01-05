@@ -61,7 +61,6 @@ namespace Encircled
 		void StartScheduling ()
 		{
 			Schedule (t => {
-				CCSimpleAudioEngine.SharedEngine.PlayEffect ("Sounds\\pew-pew-lei");
 				field.Shoot();
 				field.Grow ();
 			}, ORB_INTERVAL);

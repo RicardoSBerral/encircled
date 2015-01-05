@@ -21,15 +21,28 @@ namespace Encircled
         {
             base.AddedToScene ();
 
-            var label = new CCLabelTtf("Encircled", "Parchment", 40) {
+            var title = new CCLabelTtf("Encircled", "Parchment", 150) {
                 Position = VisibleBoundsWorldspace.Center,
                 Color = CCColor3B.Red,
                 HorizontalAlignment = CCTextAlignment.Center,
                 VerticalAlignment = CCVerticalTextAlignment.Center,
                 AnchorPoint = CCPoint.AnchorMiddle
             };
+			title.Scale = VisibleBoundsWorldspace.Size.Width * 0.8f / title.ContentSize.Width;
 
-            AddChild (label);
+			var position = new CCPoint (VisibleBoundsWorldspace.Center.X, VisibleBoundsWorldspace.Center.Y);
+			position.Y = position.Y / 2f;
+			var touch = new CCLabelTtf("\nToca para jugar\n", "StoryBook", 50) {
+				Position = position,
+				Color = CCColor3B.Black,
+				HorizontalAlignment = CCTextAlignment.Center,
+				VerticalAlignment = CCVerticalTextAlignment.Center,
+				AnchorPoint = CCPoint.AnchorMiddle
+			};
+			touch.Scale = VisibleBoundsWorldspace.Size.Width * 0.4f / touch.ContentSize.Width;
+
+			AddChild (title);
+			AddChild (touch);
         }
 
 		private void StartGame()

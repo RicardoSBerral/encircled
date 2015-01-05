@@ -93,8 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Content\fonts\Parchment-40.xnb" />
-    <None Include="Content\Sounds\pew-pew-lei.wav" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\EncircledShared\EncircledShared.projitems" Label="Shared" Condition="Exists('..\EncircledShared\EncircledShared.projitems')" />
@@ -109,6 +107,10 @@
   <ItemGroup>
     <AndroidAsset Include="Content\fonts\arial-22.xnb" />
     <AndroidAsset Include="Content\fonts\MarkerFelt-22.xnb" />
+    <AndroidAsset Include="Content\fonts\Parchment-500.xnb" />
+    <AndroidAsset Include="Content\Sounds\skipper.wma" />
+    <AndroidAsset Include="Content\Sounds\skipper.xnb" />
+    <AndroidAsset Include="Content\Sounds\tap.mp3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Sounds\" />
