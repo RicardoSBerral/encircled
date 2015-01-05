@@ -143,8 +143,10 @@ namespace Encircled.Orbs
 			while (receiving.Any()) {
 				receiving.Dequeue().UpdateOrb ();
 			}
-				
-			cellBlock.UpdateOrbs (ref toBeDestroyed);
+
+			lock (cellBlock) {
+				cellBlock.UpdateOrbs (ref toBeDestroyed);
+			}
 			var toBeRemoved = new List<Orb> ();
 
 			foreach (var orb in toBeDestroyed) {

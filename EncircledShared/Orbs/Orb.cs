@@ -122,16 +122,21 @@ namespace Encircled.Orbs
 
 			var actions = new CCFiniteTimeAction[3];
 			actions [0] = new CCCallFunc( () => {
-				large.ZOrder = 0;
-				small.ZOrder = 1;
-				small.Scale = 0f;
+//				large.ZOrder = 0;
+//				small.ZOrder = 1;
+//				small.Scale = 0f;
+//				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 1f));
+				black.Scale = 0f;
 				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 1f));
 			});
 			actions [1] = new CCDelayTime (BLINK_INTERVAL);
 			actions [2] = new CCCallFunc (() => {
-				var temp = small;
-				small = large;
-				large = temp;
+//				var temp = small;
+//				small = large;
+//				large = temp;
+
+				black.Scale = 1f;
+				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 0f));
 			});
 			node.RepeatForever (actions);
 			return node;

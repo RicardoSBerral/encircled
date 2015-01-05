@@ -16,6 +16,7 @@ namespace Encircled
 		public const float ORB_INTERVAL = 3f;
 		public const float NEWLINE_INTERVAL = 10f;
 		public const int PTM_RATIO = 32;
+		public const float GAME_OVER_DELAY = 2f;
 
 		// Físicas
 		private b2World world;
@@ -28,8 +29,16 @@ namespace Encircled
 		public Field.GameField Field { get { return field; } }
 
 		// Singleton
-		private static readonly GameLayer instance = new GameLayer();
-		public static GameLayer Instance { get { return instance; } }
+		private static GameLayer instance = null;
+		public static GameLayer Instance { 
+			get { 
+				if (instance != null) {
+					return instance;
+				} else {
+					throw new AccessViolationException ("The game layer isn't initialized.");
+				}
+			}
+		}
 
 		private GameLayer ()
 		{
@@ -38,9 +47,6 @@ namespace Encircled
 			touchListener.OnTouchesBegan = ListenerTouch;
 			touchListener.OnTouchesMoved = ListenerTouch;
 			AddEventListener (touchListener, this);
-
-			var mouseListener = new CCEventListenerMouse ();
-			mouseListener.OnMouseMove = ListenerMouse;
 
 			// Interacción con la simulación física
 			contactListener = new ContactListener ();
@@ -68,6 +74,9 @@ namespace Encircled
 			Schedule (t => {
 				world.Step (t, 8, 1);
 				field.UpdateOrbs();
+				if (ShouldEndGame()) {
+					EndGame ();
+				}
 			});
 		}
 
@@ -78,15 +87,20 @@ namespace Encircled
 			Scene.SceneResolutionPolicy = CCSceneResolutionPolicy.NoBorder;
 
 			InitPhysics ();
-			field = new Field.GameField (
-				this.VisibleBoundsWorldspace.Size.Height * GAMEFIELD_PROPORTION,
-				new CCColor4F (CCColor4B.Black),
-				world,
-				ORB_INTERVAL);
 			#if DEBUG
+				field = new Field.GameField (
+					this.VisibleBoundsWorldspace.Size.Height / 2f,
+					new CCColor4F (CCColor4B.Black),
+					world,
+					ORB_INTERVAL);
 				field.AnchorPoint = CCPoint.Zero;
 				field.Position = new CCPoint(field.PlaySize.Width, 0f);
 			#else
+				field = new Field.GameField (
+					this.VisibleBoundsWorldspace.Size.Height * GAMEFIELD_PROPORTION,
+					new CCColor4F (CCColor4B.Black),
+					world,
+					ORB_INTERVAL);
 				field.AnchorPoint = CCPoint.AnchorMiddle;
 				field.Position = this.VisibleBoundsWorldspace.Center;
 			#endif
@@ -126,11 +140,6 @@ namespace Encircled
 			Aim (touches [0].Location);
 		}
 
-		void ListenerMouse (CCEventMouse mouseEvent)
-		{
-			Aim(new CCPoint(mouseEvent.CursorX,mouseEvent.CursorY));
-		}
-
 		void Aim (CCPoint location)
 		{
 			field.Direction = location;
@@ -146,16 +155,22 @@ namespace Encircled
 			// Stop scheduled events as we transition to game over scene
 			UnscheduleAll ();
 
-			var gameOverScene = GameOverLayer.SceneWithScore (Window, 10);
-			var transitionToGameOver = new CCTransitionMoveInR (0.3f, gameOverScene);
+			var actions = new CCFiniteTimeAction [2];
+			actions [0] = new CCDelayTime (GAME_OVER_DELAY);
+			actions [1] = new CCCallFunc (() => {
+				var gameOverScene = GameOverLayer.SceneWithScore (Window, 10);
+				var transitionToGameOver = new CCTransitionMoveInR (0.3f, gameOverScene);
 
-			Director.ReplaceScene (transitionToGameOver);
+				Director.ReplaceScene (transitionToGameOver);
+			});
+			this.RunActions (actions);
 		}
 
 		public static CCScene GameScene (CCWindow mainWindow)
 		{
 			var scene = new CCScene (mainWindow);
-			
+
+			instance = new GameLayer ();
 			scene.AddChild (Instance);
 
 			return scene;

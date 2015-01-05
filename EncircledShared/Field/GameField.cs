@@ -34,7 +34,7 @@ namespace Encircled.Field
 		public CCSize PlaySize { get { return frame.PlaySize; } }
 		public CCSize StartSize { get { return frame.StartSize; } }
 		public OrbBlock Block { get { return block; } }
-		private float OrbRadius { get { return frame.PlaySize.Width * width_to_orb_proportion; } }
+		private float OrbRadius { get { return frame.PlaySize.Width * width_to_orb_proportion / 2f; } }
 		public bool GameShouldEnd { get { return block.GameShouldEnd; } }
 
 		// Almacenamiento
@@ -63,7 +63,7 @@ namespace Encircled.Field
 		public GameField (float height, CCColor4F color, b2World world, 
 			float growing_time,
 			float width_proportion = 720f / 1280f, 
-			float width_to_orb_proportion = 0.05f
+			float width_to_orb_proportion = 1f / 7f
 		)
 		{
 			// Copiar parámetros

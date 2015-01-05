@@ -5,11 +5,11 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "EncircledShared", "EncircledShared\EncircledShared.shproj", "{8B8CA0ED-24BC-4569-916F-F643E5966BCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncircledICSAndroid", "EncircledICSAndroid\EncircledICSAndroid.csproj", "{79157D1A-09B7-43EF-9D64-4EC632C90289}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncircledWindows", "EncircledWindows\EncircledWindows.csproj", "{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncircledASPNET", "EncircledASPNET\EncircledASPNET.csproj", "{4ABF7DBF-183C-459B-A078-8139EF87B71E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncircledAndroid", "EncircledAndroid\EncircledAndroid.csproj", "{7B89D990-03EA-4FF4-8392-376C08E37161}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,22 +39,22 @@ Global
 		{4ABF7DBF-183C-459B-A078-8139EF87B71E}.Release|x64.Build.0 = Release|Any CPU
 		{4ABF7DBF-183C-459B-A078-8139EF87B71E}.Release|x86.ActiveCfg = Release|Any CPU
 		{4ABF7DBF-183C-459B-A078-8139EF87B71E}.Release|x86.Build.0 = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|ARM.Build.0 = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|x64.Build.0 = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Debug|x86.Build.0 = Debug|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|Any CPU.Build.0 = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|ARM.ActiveCfg = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|ARM.Build.0 = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|x64.ActiveCfg = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|x64.Build.0 = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|x86.ActiveCfg = Release|Any CPU
-		{79157D1A-09B7-43EF-9D64-4EC632C90289}.Release|x86.Build.0 = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|ARM.Build.0 = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|x64.Build.0 = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Debug|x86.Build.0 = Debug|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|ARM.ActiveCfg = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|ARM.Build.0 = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|x64.ActiveCfg = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|x64.Build.0 = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|x86.ActiveCfg = Release|Any CPU
+		{7B89D990-03EA-4FF4-8392-376C08E37161}.Release|x86.Build.0 = Release|Any CPU
 		{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}.Debug|Any CPU.Build.0 = Debug|x86
 		{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}.Debug|ARM.ActiveCfg = Debug|x86
@@ -73,7 +73,7 @@ Global
 		{C2AA92EF-1C66-4100-B17B-613EA7CB7BCC}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = EncircledWindows\EncircledWindows.csproj
+		StartupItem = EncircledAndroid\EncircledAndroid.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
