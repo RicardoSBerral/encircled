@@ -153,7 +153,7 @@ namespace Encircled.Field
 			if (!ending) {
 				try {
 					block.PushLine ();
-				} catch (GameShouldEndException e) {
+				} catch (GameShouldEndException) {
 					DestroyAll ();
 				}
 			}
@@ -169,7 +169,7 @@ namespace Encircled.Field
 				try {
 					shot.ToList ().ForEach (orb => orb.UpdateOrb ());
 					block.UpdateOrbs ();
-				} catch (GameShouldEndException e) {
+				} catch (GameShouldEndException) {
 					DestroyAll ();
 				}
 			} else {
