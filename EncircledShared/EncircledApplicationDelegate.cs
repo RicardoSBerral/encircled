@@ -11,10 +11,7 @@ namespace Encircled
             application.PreferMultiSampling = false;
             application.ContentRootDirectory = "Content";
 
-            application.ContentSearchPaths.Add("hd");
-
-            CCSimpleAudioEngine.SharedEngine.PreloadEffect ("Sounds/tap");
-            // CCSimpleAudioEngine.SharedEngine.PreloadBackgroundMusic ("Sounds/backgroundMusic");
+			CCSimpleAudioEngine.SharedEngine.PreloadEffect ("Sounds\\pew-pew-lei");
             CCSize winSize = mainWindow.WindowSizeInPixels;
             mainWindow.SetDesignResolutionSize(winSize.Width, winSize.Height, CCSceneResolutionPolicy.ExactFit);
 

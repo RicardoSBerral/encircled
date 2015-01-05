@@ -14,35 +14,35 @@ namespace Encircled.Orbs
 {
 	public enum StateOrb
 	{
+		Start,
 		Growing,
 		Shot,
 		Stuck,
 		Falling,
 		BeforeDestroying,
-		Destroyed,
-		Undefined
+		Destroyed
 	};
 
 	public class Orb : CCNode
 	{
 		// Constantes
+		// Colores con su probabilidad sobre 100
 		public readonly static Dictionary<CCColor4B, int> colors = new Dictionary<CCColor4B, int> {
-			{ CCColor4B.Red, 35 },
-			{ CCColor4B.Blue, 35 },
+			{ CCColor4B.Red, 30 },
+			{ CCColor4B.Blue, 30 },
 			{ CCColor4B.Yellow, 20 },
-			{ CCColor4B.Green, 18 },
-			{ CCColor4B.Gray, 50 /*2*/ },
+			{ CCColor4B.Green, 10 },
+			{ CCColor4B.Orange, 10 },
 		};
-		const float BLINK_INTERVAL = 1f;
 
 		// Contador
 		private static int counter = 0;
 		private readonly int id;
 
 		// Almacenamiento
-		private readonly CCNode node;
+		private readonly CCDrawNode node;
 		private b2Body physicsBody;
-		private Action<b2Body> updateBody;
+		private Func<b2Body,bool> updateBody;
 
 		// Parámetros
 		private readonly float radius;
@@ -78,18 +78,13 @@ namespace Encircled.Orbs
 			this.physicsBody = physicsBody;
 			this.physicsBody.UserData = this;
 			this.physicsBody.GravityScale = 0f;
-			this.state = StateOrb.Undefined;
+			this.state = StateOrb.Start;
 			this.updateBody = null;
 
 			// Dibujar círculo
 			this.color = colors.Roulette ();
-			if (color != CCColor4B.Gray) {
-				CCDrawNode n = new CCDrawNode ();
-				n.DrawSolidCircle (CCPoint.Zero, radius, color);
-				node = n;
-			} else {
-				node = Blink (radius);
-			}
+			node = new CCDrawNode ();
+			node.DrawSolidCircle (CCPoint.Zero, radius, color);
 			this.AddChild (node);
 
 			// Posición
@@ -98,52 +93,20 @@ namespace Encircled.Orbs
 			// Número de identidad
 			id = System.Threading.Interlocked.Increment (ref counter);
 
+			// Empezar parado
+			physicsBody.SetActive (false);
+			physicsBody.SetType(b2BodyType.b2_staticBody);
+
 			#if DEBUG
 			Debug ();
 			#endif
 		}
 
-		private static CCNode Blink(float radius) {
-
-			CCNode gray = new CCNode ();
-			var g = new CCDrawNode ();
-			g.DrawSolidCircle (CCPoint.Zero, radius, CCColor4B.Gray);
-			gray.AddChild (g);
-			CCNode black = new CCNode ();
-			var b = new CCDrawNode ();
-			b.DrawSolidCircle (CCPoint.Zero, radius, CCColor4B.Black);
-			black.AddChild (b);
-			CCNode node = new CCNode ();
-			node.AddChild (gray);
-			node.AddChild (black);
-
-			CCNode small = gray;
-			CCNode large = black;
-
-			var actions = new CCFiniteTimeAction[3];
-			actions [0] = new CCCallFunc( () => {
-//				large.ZOrder = 0;
-//				small.ZOrder = 1;
-//				small.Scale = 0f;
-//				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 1f));
-				black.Scale = 0f;
-				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 1f));
-			});
-			actions [1] = new CCDelayTime (BLINK_INTERVAL);
-			actions [2] = new CCCallFunc (() => {
-//				var temp = small;
-//				small = large;
-//				large = temp;
-
-				black.Scale = 1f;
-				small.RunAction(new CCScaleTo(BLINK_INTERVAL, 0f));
-			});
-			node.RepeatForever (actions);
-			return node;
-		}
-
 		public void Grow (float growing_time = 0.2f)
 		{
+			if (State != StateOrb.Start) {
+				throw new InvalidOperationException ("The orb of id " + id + " is not in a state of 'start', so it can't 'grow'.");
+			}
 			CCFiniteTimeAction[] actions = new CCFiniteTimeAction[3];
 			actions [0] = new CCScaleTo (0f, 0f);
 			actions [1] = new CCCallFunc (
@@ -153,6 +116,7 @@ namespace Encircled.Orbs
 					updateBody = (body) => {
 						body.SetActive (false);
 						body.SetType(b2BodyType.b2_staticBody);
+						return body.BodyType == b2BodyType.b2_staticBody;
 					};
 				});
 			actions [2] = new CCScaleTo (growing_time, 1f);
@@ -161,6 +125,9 @@ namespace Encircled.Orbs
 
 		public CCFiniteTimeAction Shoot (CCPoint position)
 		{
+			if (State != StateOrb.Growing) {
+				throw new InvalidOperationException ("The orb of id " + id + " is not in a state of 'growing', so it can't 'be shot'.");
+			}
 			return new CCCallFunc (
 				() => {
 					Position = position;
@@ -171,6 +138,7 @@ namespace Encircled.Orbs
 						body.ApplyLinearImpulse (
 							new b2Vec2 (Direction.X, Direction.Y) * impulse / GameLayer.PTM_RATIO,
 							body.WorldCenter);
+						return body.BodyType == b2BodyType.b2_dynamicBody;
 					};
 				}
 			);
@@ -183,11 +151,15 @@ namespace Encircled.Orbs
 				body.FixtureList.Friction = 0f;
 				body.FixtureList.Restitution = 0f;
 				body.LinearDamping = 5000f;
+				return body.LinearVelocity == b2Vec2.Zero;
 			};
 		}
 
 		public void Freeze (CCPoint position)
 		{
+			if (State != StateOrb.Start && State != StateOrb.Shot) {
+				throw new InvalidOperationException ("The orb of id " + id + " is not in a state of 'being shot' or 'start', so it can't 'froze'.");
+			}
 			state = StateOrb.Stuck;
 			updateBody = (body) => {
 				// 'Slow down'
@@ -197,52 +169,47 @@ namespace Encircled.Orbs
 				body.LinearDamping = 5000f;
 
 				body.SetType (b2BodyType.b2_staticBody);
+				body.SetActive(true);
 				this.Position = position;
+				return body.BodyType == b2BodyType.b2_staticBody;
 			};
 		}
 
 		public void Destroy (float time = 0.3f)
 		{
+			state = StateOrb.BeforeDestroying;
 			var actions = new CCFiniteTimeAction[2];
 			actions [0] = new CCScaleTo (time, 0f);
 			actions [1] = new CCCallFunc (() => {
 				this.RemoveAllChildren (true);
 				this.RemoveFromParent (true);
-				state = StateOrb.BeforeDestroying;
 				updateBody = (body) => {
+					if (body == null) {
+						return true;
+					}
 					var world = body.World;
 					world.DestroyBody (body);
 					state = StateOrb.Destroyed;
+					return false;
 				};
 			});
 			RunActions(actions);
-		}
-
-		public void Fall ()
-		{
-			var actions = new CCFiniteTimeAction[3];
-			actions [0] = new CCCallFunc (() => {
-				state = StateOrb.Falling;
-				updateBody = (body) => {
-					body.SetType (b2BodyType.b2_dynamicBody);
-					body.GravityScale = 8f;
-				};
-			});
-			actions [1] = new CCDelayTime (4f);
-			actions [2] = new CCCallFunc (() =>Destroy ());
-			RunActions (actions);
 		}
 
 		public void UpdateOrb ()
 		{
 			if (physicsBody != null) {
 				if (updateBody != null) {
-					updateBody (physicsBody);
-					updateBody = null;
+					if (updateBody (physicsBody)) {
+						updateBody = null;
+					}
 				}
 			}
 			if (state == StateOrb.Destroyed) {
 				physicsBody = null;
+			}
+			if (physicsBody == null) {
+				state = StateOrb.Destroyed;
 			}
 			if (physicsBody != null) {
 				base.Position = new CCPoint (physicsBody.Position.x * GameLayer.PTM_RATIO, physicsBody.Position.y * GameLayer.PTM_RATIO);

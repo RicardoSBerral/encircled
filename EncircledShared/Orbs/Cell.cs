@@ -45,7 +45,9 @@ namespace Encircled.Orbs
 				if (Empty) {
 					currentOrb = value;
 					value.Position = position;
-					currentOrb.Freeze (position);
+					if (value.State != StateOrb.Stuck) {
+						currentOrb.Freeze (position);
+					}
 				} else {
 						throw new AccessViolationException ("This cell already houses an orb, of id " + currentOrb.Id + ".");
 				}
@@ -66,18 +68,6 @@ namespace Encircled.Orbs
 				var orb = currentOrb;
 				currentOrb = null;
 				orb.Destroy ();
-				return orb;
-			} else {
-				throw new AccessViolationException ("This cell doesn't house any orb.");
-			}
-		}
-
-		public Orb LetFall ()
-		{
-			if (!Empty) {
-				var orb = currentOrb;
-				currentOrb = null;
-				orb.Fall ();
 				return orb;
 			} else {
 				throw new AccessViolationException ("This cell doesn't house any orb.");

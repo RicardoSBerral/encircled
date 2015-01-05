@@ -9,7 +9,7 @@ namespace Encircled
         public GameStartLayer () : base ()
         {
             var touchListener = new CCEventListenerTouchAllAtOnce ();
-            touchListener.OnTouchesEnded = (touches, ccevent) => Window.DefaultDirector.ReplaceScene (GameLayer.GameScene (Window));
+			touchListener.OnTouchesEnded = (touches, ccevent) => StartGame();
 
             AddEventListener (touchListener, this);
 
@@ -21,7 +21,7 @@ namespace Encircled
         {
             base.AddedToScene ();
 
-            var label = new CCLabelTtf("ENCIRCLED", "MarkerFelt", 22) {
+            var label = new CCLabelTtf("Encircled", "Parchment", 40) {
                 Position = VisibleBoundsWorldspace.Center,
                 Color = CCColor3B.Red,
                 HorizontalAlignment = CCTextAlignment.Center,
@@ -31,6 +31,12 @@ namespace Encircled
 
             AddChild (label);
         }
+
+		private void StartGame()
+		{
+			var transition = new CCTransitionCrossFade (1f, GameLayer.GameScene(Window));
+			Director.ReplaceScene (transition);
+		}
 
         public static CCScene GameStartLayerScene (CCWindow mainWindow)
         {

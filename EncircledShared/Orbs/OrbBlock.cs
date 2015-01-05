@@ -36,13 +36,14 @@ namespace Encircled.Orbs
 
 		// Almacenamiento
 		private readonly List<Orb> nextLine;
-		private readonly Queue<Orb> receiving;
-		private HashSet<Orb> toBeDestroyed;
+		private readonly Queue<Tuple<Orb,Orb>> receiving;
+		private readonly Queue<Orb> received;
+		private List<Orb> toBeDestroyed;
 		private readonly CellBlock cellBlock;
 
 		// Propiedades
 		public float StickDelay { get { return stick_delay; } }
-		public bool GameShouldEnd { get { return cellBlock.GameShouldEnd; } }
+		public int DestroyedOrbs { get { return cellBlock.DestroyedOrbs; } }
 
 
 		public OrbBlock (b2World world, OrbFactory factory, OrbComparer comparer, CCSize playSize, CCSize startSize, float stick_delay = 0.05f)
@@ -57,8 +58,9 @@ namespace Encircled.Orbs
 			this.stick_delay = stick_delay;
 			this.x_offset = true;
 			this.nextLine = CreateLine();
-			this.receiving = new Queue<Orb> ();
-			this.toBeDestroyed = new HashSet<Orb> (comparer);
+			this.receiving = new Queue<Tuple<Orb,Orb>> ();
+			this.received = new Queue<Orb> ();
+			this.toBeDestroyed = new List<Orb>();
 
 			// Celdas
 			cellBlock = new CellBlock (playSize, startSize, orb_radius, orb_radius_proj);
@@ -77,7 +79,8 @@ namespace Encircled.Orbs
 				x += orb_radius;
 			}
 			x_offset = !x_offset;
-			for (; x + orb_radius <= playSize.Width; x += orb_radius * 2) {
+			// Le dejamos un poco más de espacio para él último orbe
+			for (; x + orb_radius / 1.5f <= playSize.Width; x += orb_radius * 2f) {
 				var position = new CCPoint (x, y);
 				var orb = factory.CreateOrb (position);
 				orb.Freeze (position);
@@ -99,10 +102,19 @@ namespace Encircled.Orbs
 			nextLine.AddRange (CreateLine ());
 		}
 
-		public void ReceiveOrb (Orb hit, Orb hitter)
+		public void ScheduleReceiveOrb (Orb hit, Orb hitter)
+		{
+			// Si hemos detectado otro golpe con la misma bola, pasamos
+			if (receiving.Any (c => c.Item2.Id == hitter.Id)) {
+				return;
+			}
+			receiving.Enqueue(new Tuple<Orb, Orb>(hit, hitter));
+		}
+
+		private void ReceiveOrb (Orb hit, Orb hitter)
 		{
 			GameLayer.Instance.Field.Remove (hitter);
-			receiving.Enqueue (hitter);
+			received.Enqueue (hitter);
 			this.AddChild (hitter);
 
 			var cell = StickOrbs (hit, hitter);
@@ -137,27 +149,44 @@ namespace Encircled.Orbs
 
 		public void UpdateOrbs ()
 		{
+			// Operaciones
+			while (receiving.Any ()) {
+				var pair = receiving.Dequeue ();
+				ReceiveOrb (pair.Item1, pair.Item2);
+			}
+
+			// Actualizaciones
+			while (receiving.Any()) {
+				received.Dequeue().UpdateOrb ();
+			}
 			foreach (var orb in nextLine) {
 				orb.UpdateOrb ();
 			}
-			while (receiving.Any()) {
-				receiving.Dequeue().UpdateOrb ();
-			}
-
 			lock (cellBlock) {
 				cellBlock.UpdateOrbs (ref toBeDestroyed);
 			}
-			var toBeRemoved = new List<Orb> ();
 
-			foreach (var orb in toBeDestroyed) {
-				orb.UpdateOrb ();
-				if (orb.State == StateOrb.Destroyed) {
-					toBeRemoved.Add (orb);
-				}
+			// Quitar inservibles
+			toBeDestroyed = toBeDestroyed
+				.Where(orb => {
+					orb.UpdateOrb();
+					return orb.State != StateOrb.Destroyed;
+				})
+				.ToList();
+		}
+
+		public void DestroyAll(ref List<Orb> allOrbs) {
+
+			lock (cellBlock) {
+				cellBlock.DestroyAll (ref allOrbs);
 			}
-			foreach (var orb in toBeRemoved) {
-				toBeDestroyed.Remove (orb);
+
+			foreach (var orb in nextLine.Union(received).Union(toBeDestroyed).ToList()) {
+				allOrbs.Add(orb);
 			}
+			nextLine.Clear();
+			receiving.Clear();
+			toBeDestroyed.Clear();
 		}
 	}
 }

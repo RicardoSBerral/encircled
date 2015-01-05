@@ -12,7 +12,6 @@ namespace Encircled.Field
 {
 	public class Arrow : CCNode
 	{
-		public const float LINE_WIDTH = 1f;
 		public const float SIDE_PROPORTION = 0.2f;
 		public const int MAX_ANGLE_DEFAULT = 40;
 
@@ -52,7 +51,7 @@ namespace Encircled.Field
 			}
 		}
 
-		public Arrow (float size, CCColor4F color, float max_angle = MAX_ANGLE_DEFAULT)
+		public Arrow (float size, CCColor4F color, float line_width, float max_angle = MAX_ANGLE_DEFAULT)
 		{
 		
 			// TAMAÑO TOTAL
@@ -68,9 +67,9 @@ namespace Encircled.Field
 			CCPoint sideB = new CCPoint (- side_X_projection, size - side_X_projection);
 
 			arrow = new CCDrawNode ();
-			arrow.DrawSegment (start, end, LINE_WIDTH, color);
-			arrow.DrawSegment (end, sideA, LINE_WIDTH, color);
-			arrow.DrawSegment (end, sideB, LINE_WIDTH, color);
+			arrow.DrawSegment (start, end, line_width, color);
+			arrow.DrawSegment (end, sideA, line_width, color);
+			arrow.DrawSegment (end, sideB, line_width, color);
 			arrow.AnchorPoint = CCPoint.Zero;
 			this.AddChild (arrow);
 		}

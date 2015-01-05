@@ -89,36 +89,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\hd\animations\monkey.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\hd\balls.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\hd\cloud.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\hd\grass.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Game.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\fonts\arial-22.xnb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="Content\hd\animations\monkey.plist">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Sounds\tap.xnb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Content\fonts\MarkerFelt-22.xnb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Content\fonts\Parchment-40.xnb" />
+    <None Include="Content\Sounds\pew-pew-lei.wav" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\EncircledShared\EncircledShared.projitems" Label="Shared" Condition="Exists('..\EncircledShared\EncircledShared.projitems')" />
@@ -130,4 +106,11 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <AndroidAsset Include="Content\fonts\arial-22.xnb" />
+    <AndroidAsset Include="Content\fonts\MarkerFelt-22.xnb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\Sounds\" />
+  </ItemGroup>
 </Project>

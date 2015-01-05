@@ -12,7 +12,7 @@ namespace Encircled
         public GameOverLayer (int score)
         {
             var touchListener = new CCEventListenerTouchAllAtOnce ();
-            touchListener.OnTouchesEnded = (touches, ccevent) => Window.DefaultDirector.ReplaceScene (GameLayer.GameScene (Window));
+			touchListener.OnTouchesEnded = (touches, ccevent) => RestartGame();
 
             AddEventListener (touchListener, this);
 
@@ -37,17 +37,13 @@ namespace Encircled
 			};
 
 			AddChild (label);
-
-//            var playAgainLabel = new CCLabelTtf ("Tap to Play Again", "MarkerFelt", 22) {
-//                Position = VisibleBoundsWorldspace.Size.Center,
-//                Color = new CCColor3B (CCColor4B.Green),
-//                HorizontalAlignment = CCTextAlignment.Center,
-//                VerticalAlignment = CCVerticalTextAlignment.Center,
-//                AnchorPoint = CCPoint.AnchorMiddle,
-//            };
-//
-//            AddChild (playAgainLabel);
         }
+
+		public void RestartGame()
+		{
+			var transition = new CCTransitionCrossFade (1f, GameLayer.GameScene (Window));
+			Window.DefaultDirector.ReplaceScene (transition);
+		}
 
         public static CCScene SceneWithScore (CCWindow mainWindow, int score)
         {

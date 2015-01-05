@@ -13,18 +13,17 @@ namespace Encircled.Orbs
 	public class OrbFactory
 	{
 		private readonly float radius;
-		private readonly float impulse;
 		private readonly b2World world;
 		private readonly b2FixtureDef circleDef;
 		private readonly b2BodyDef bodyDef;
 
 		public float Radius { get { return radius; } }
 		public float Mass { get { return 0f; } }
+		public float Impulse { get { return radius * 75f; } }
 
-		public OrbFactory (float radius, b2World world, float impulse = 500f)
+		public OrbFactory (float radius, b2World world)
 		{
 			this.radius = radius;
-			this.impulse = impulse;
 			this.world = world;
 
 			// Creación del círculo
@@ -50,7 +49,7 @@ namespace Encircled.Orbs
 
 			physicsBody.Mass = Mass;
 
-			return new Orb (radius, impulse, physicsBody);
+			return new Orb (radius, Impulse, physicsBody);
 		}
 	}
 }

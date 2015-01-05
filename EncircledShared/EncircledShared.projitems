@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SumExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Orbs\Cell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Orbs\CellBlock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\GameShouldEndException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Field\" />

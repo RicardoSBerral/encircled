@@ -15,7 +15,6 @@ namespace Encircled.Field
 	public enum FramePart {BottomAndSides, Ceiling, Limit, None};
 	public class Frame : CCNode
 	{
-		public const float LINE_WIDTH = 1f;
 		public const float LIMIT_PROPORTION = 0.15f;
 
 		private readonly CCSize playSize;
@@ -25,10 +24,8 @@ namespace Encircled.Field
 		public CCSize StartSize { get { return startSize; } }
 
 		private readonly b2Body sides;
-		private readonly b2Body bottom;
-		private readonly b2Body limit;
 
-		public Frame (float height, CCColor4F color, b2World world, float width_proportion = 720f / 1280f)
+		public Frame (float height, CCColor4F color, b2World world, float line_width, float width_proportion = 720f / 1280f)
 		{
 
 			// TAMAÑO TOTAL
@@ -46,8 +43,8 @@ namespace Encircled.Field
 			var frame = new CCDrawNode ();
 
 			// LADOS
-			frame.DrawSegment (corner2, corner3, LINE_WIDTH, color);
-			frame.DrawSegment (corner4, corner1, LINE_WIDTH, color);
+			frame.DrawSegment (corner2, corner3, line_width, color);
+			frame.DrawSegment (corner4, corner1, line_width, color);
 			b2Vec2[] sidesV = new b2Vec2[4];
 			sidesV [0] = new b2Vec2 (corner4.X / GameLayer.PTM_RATIO, corner4.Y / GameLayer.PTM_RATIO);
 			sidesV [1] = new b2Vec2 (corner1.X / GameLayer.PTM_RATIO, corner1.Y / GameLayer.PTM_RATIO);
@@ -69,37 +66,13 @@ namespace Encircled.Field
 			sides.CreateFixture (sidesF2);
 
 			// FONDO
-			frame.DrawSegment (corner1, corner2, LINE_WIDTH, color);
-			var bottomS = new b2EdgeShape ();
-			bottomS.Set (sidesV [1], sidesV [2]);
-			var bottomF = new b2FixtureDef ();
-			bottomF.shape = bottomS;
-			bottomF.friction = 0f;
-			bottomF.restitution = 0f;
-			var bottomD = new b2BodyDef ();
-			bottomD.type = b2BodyType.b2_staticBody;
-			bottomD.position.Set (0f, 0f);
-			bottom = world.CreateBody (bottomD);
-			sides.CreateFixture (bottomF);
+			frame.DrawSegment (corner1, corner2, line_width, color);
 
 			// TECHO
-			frame.DrawSegment (corner3, corner4, LINE_WIDTH, color);
+			frame.DrawSegment (corner3, corner4, line_width, color);
 
 			// LÍMITE
-			frame.DrawSegment (corner5, corner6, LINE_WIDTH, color);
-			b2Vec2[] limitV = new b2Vec2[2];
-			limitV [0] = new b2Vec2 (corner5.X / GameLayer.PTM_RATIO, corner5.Y / GameLayer.PTM_RATIO);
-			limitV [1] = new b2Vec2 (corner6.X / GameLayer.PTM_RATIO, corner6.Y / GameLayer.PTM_RATIO);
-			var limitS = new b2ChainShape ();
-			limitS.CreateChain (limitV, 2);
-			var limitF = new b2FixtureDef ();
-			limitF.shape = limitS;
-			limitF.isSensor = true;
-			var limitD = new b2BodyDef ();
-			limitD.type = b2BodyType.b2_staticBody;
-			limitD.position.Set (0f, 0f);
-			limit = world.CreateBody (limitD);
-			limit.CreateFixture (limitF);
+			frame.DrawSegment (corner5, corner6, line_width, color);
 
 			this.AddChild (frame);
 		}

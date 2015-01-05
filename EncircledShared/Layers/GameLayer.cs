@@ -10,10 +10,11 @@ using Box2D.Collision.Shapes;
 
 namespace Encircled
 {
+
 	public class GameLayer : CCLayerColor
 	{
 		public const float GAMEFIELD_PROPORTION = 0.85f;
-		public const float ORB_INTERVAL = 3f;
+		public const float ORB_INTERVAL = 1.5f;
 		public const float NEWLINE_INTERVAL = 10f;
 		public const int PTM_RATIO = 32;
 		public const float GAME_OVER_DELAY = 2f;
@@ -55,14 +56,12 @@ namespace Encircled
 			Opacity = 255;     
 
 			StartScheduling ();
-
-			// TODO
-			//CCSimpleAudioEngine.SharedEngine.PlayBackgroundMusic ("Sounds/backgroundMusic", true);
 		}
 
 		void StartScheduling ()
 		{
 			Schedule (t => {
+				CCSimpleAudioEngine.SharedEngine.PlayEffect ("Sounds\\pew-pew-lei");
 				field.Shoot();
 				field.Grow ();
 			}, ORB_INTERVAL);
@@ -152,18 +151,12 @@ namespace Encircled
 
 		void EndGame ()
 		{
-			// Stop scheduled events as we transition to game over scene
+			// Parar todos los eventos
 			UnscheduleAll ();
 
-			var actions = new CCFiniteTimeAction [2];
-			actions [0] = new CCDelayTime (GAME_OVER_DELAY);
-			actions [1] = new CCCallFunc (() => {
-				var gameOverScene = GameOverLayer.SceneWithScore (Window, 10);
-				var transitionToGameOver = new CCTransitionMoveInR (0.3f, gameOverScene);
-
-				Director.ReplaceScene (transitionToGameOver);
-			});
-			this.RunActions (actions);
+			var gameOverScene = GameOverLayer.SceneWithScore (Window, field.DestroyedOrbs);
+			var transitionToGameOver = new CCTransitionCrossFade (1f, gameOverScene);
+			Director.ReplaceScene (transitionToGameOver);
 		}
 
 		public static CCScene GameScene (CCWindow mainWindow)

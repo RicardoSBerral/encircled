@@ -19,8 +19,8 @@ namespace Encircled.Orbs
 		private readonly float orb_radius_proj;
 		private readonly CCSize playSize;
 		private readonly CCSize startSize;
-		private bool gameShouldEnd;
 		private int destroyedOrbs;
+		private readonly int min;
 
 		// Almacenamiento
 		private readonly List<List<Cell>> cells;
@@ -31,8 +31,9 @@ namespace Encircled.Orbs
 		private readonly CellComparer comparer;
 
 		// Propiedades
-		public bool GameShouldEnd { get { return gameShouldEnd; } }
 		public int DestroyedOrbs { get { return destroyedOrbs; } }
+		public int MaxOrbs { get { return min + 1; } }
+		public int MinOrbs { get { return min; } }
 
 		// Debug
 		#if DEBUG
@@ -48,7 +49,6 @@ namespace Encircled.Orbs
 			this.playSize = playSize;
 			this.startSize = startSize;
 			this.comparer = new CellComparer ();
-			this.gameShouldEnd = false;
 			this.destroyedOrbs = 0;
 			this.toBeEmptied = new Queue<Cell> ();
 			this.toBeLetFall = new Queue<Cell> ();
@@ -67,6 +67,7 @@ namespace Encircled.Orbs
 				cells.Add (yCells);
 				_x_offset = !_x_offset;
 			}
+			this.min = cells [0].Count;
 
 			#if DEBUG
 			//Debug
@@ -89,8 +90,8 @@ namespace Encircled.Orbs
 
 			int indX = 0;
 			for (;
-				x + orb_radius <= playSize.Width;
-				x += orb_radius * 2, indX++) {
+				x + orb_radius / 1.5f <= playSize.Width; //Le dejamos un poco más de espacio por si acaso
+				x += orb_radius * 2f, indX++) {
 
 				// Instanciación de la celda
 				var cell = new Cell (indY, indX, new CCPoint(x, y));
@@ -110,11 +111,11 @@ namespace Encircled.Orbs
 		{
 			var cell = NearestCell (orb.Position);
 			if (cell.Y == cells.Last ().First ().Y) {
-				EndGame ();
+				throw new GameShouldEndException ();
 			}
 
 			if (!cell.Empty) {
-				throw new InvalidOperationException ("The neareast cell already houses an orb, of id " + cell.CurrentOrb.Id + ".");
+				cell = BelowCells (cell).Where (c => !c.Empty).First ();
 			}
 
 			cell.CurrentOrb = orb;
@@ -137,7 +138,15 @@ namespace Encircled.Orbs
 				}
 			}
 			float y = startSize.Height + playSize.Height - orb_radius_proj;
+
+			// Insertamos una fila por encima
 			var nextLine = CreateLine (x_offset, y, 0);
+			if (nextLine.Count != newOrbs.Count) {
+				throw new ArgumentException (
+					"The parameter 'newOrbs' ought to have "
+					+ nextLine.Count + " elements, but has " 
+					+ newOrbs.Count + " elements.");
+			}
 			for (int x = 0; x < nextLine.Count; x++) {
 				nextLine [x].CurrentOrb = newOrbs [x];
 				newOrbs [x].Visible = true;
@@ -145,8 +154,9 @@ namespace Encircled.Orbs
 			}
 			cells.Insert (0, nextLine);
 
+			// Borramos la fila de debajo, o terminamos el juego
 			if (cells.Last ().Any (cell => !cell.Empty) || cells[cells.Count - 2].Any (cell => !cell.Empty)) {
-				EndGame ();
+				throw new GameShouldEndException ();
 			} else {
 				cells.RemoveAt (cells.Count - 1);
 			}
@@ -154,13 +164,6 @@ namespace Encircled.Orbs
 			#if DEBUG
 			Debug ();
 			#endif
-		}
-
-		public void EndGame() {
-			gameShouldEnd = true;
-			foreach (var cell in cells.SelectMany(i => i).Where(c => !c.Empty)){
-				toBeLetFall.Enqueue(cell);
-			}
 		}
 
 		public void AboveOrBelow (Cell cell, out int? xA, out int? xB)
@@ -309,8 +312,23 @@ namespace Encircled.Orbs
 		private void LetFallLoose ()
 		{
 			var falling = new HashSet<Cell> (comparer);
+			var undecided = new List<Cell> ();
 			for (int i = 1; i < cells.Count; i++) {
-				LetFallLoose (cells [i], ref falling);
+				LetFallLoose (cells [i], ref falling, ref undecided);
+			}
+
+			// Si una indecisa no tiene ningún punto de apoyo, se cae
+			for (int i = 0; i < undecided.Count; i++) {
+				var cell = undecided [i];
+
+				var sides = BesidesCells (cell);
+				bool fallenSides = true;
+				foreach (var s in sides) {
+					fallenSides = fallenSides && (s.Empty || falling.Contains (s) || undecided.Contains (s));
+				}
+				if (fallenSides) {
+					falling.Add (cell);
+				}
 			}
 
 			// Tirar las que se van a caer
@@ -319,9 +337,8 @@ namespace Encircled.Orbs
 			}
 		}
 
-		private void LetFallLoose (List<Cell> row, ref HashSet<Cell> falling)
+		private void LetFallLoose (List<Cell> row, ref HashSet<Cell> falling, ref List<Cell> undecided)
 		{
-			List<Cell> undecided = new List<Cell> ();
 			for (int i = 0; i < row.Count; i++) {
 				var cell = row [i];
 
@@ -358,19 +375,6 @@ namespace Encircled.Orbs
 				// No se sabe si se han caído los de los lados.
 				undecided.Add (cell);
 			}
-
-			for (int i = 0; i < undecided.Count; i++) {
-				var cell = undecided [i];
-
-				var sides = BesidesCells (cell);
-				bool fallenSides = true;
-				foreach (var s in sides) {
-					fallenSides = fallenSides && (s.Empty || falling.Contains (s) || undecided.Contains (s));
-				}
-				if (fallenSides) {
-					falling.Add (cell);
-				}
-			}
 		}
 
 		#if DEBUG
@@ -405,7 +409,7 @@ namespace Encircled.Orbs
 		}
 		#endif
 
-		public void UpdateOrbs (ref HashSet<Orb> toBeDestroyed)
+		public void UpdateOrbs (ref List<Orb> toBeDestroyed)
 		{
 			foreach (var orb in cells.SelectMany(i => i)
 				.Where (cell => !cell.Empty)
@@ -431,6 +435,14 @@ namespace Encircled.Orbs
 					toBeDestroyed.Add (cell.DestroyOrb ());
 					destroyedOrbs++;
 				}
+			}
+		}
+
+		public void DestroyAll(ref List<Orb> allOrbs) {
+			foreach (var cell in cells.SelectMany(i => i)
+				.Where (cell => !cell.Empty))
+			{
+				allOrbs.Add (cell.DestroyOrb ());
 			}
 		}
 	}

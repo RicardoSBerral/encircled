@@ -61,7 +61,7 @@ namespace Encircled
 
 			m.SlowDown ();
 			m.UpdateOrb ();
-			Encircled.GameLayer.Instance.Field.Block.ReceiveOrb (s, m);
+			Encircled.GameLayer.Instance.Field.Block.ScheduleReceiveOrb (s, m);
 		}
 
 		public override void PostSolve(b2Contact contact, ref b2ContactImpulse contactImpulse)
