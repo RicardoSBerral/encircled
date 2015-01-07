@@ -6,8 +6,6 @@ namespace Encircled
 
     public class EncircledApplicationDelegate : CCApplicationDelegate
 	{
-		public readonly string bmPath;
-		public readonly string efPath;
 
 		public override void ApplicationDidFinishLaunching (CCApplication application, CCWindow mainWindow)
         {

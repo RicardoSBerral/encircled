@@ -28,7 +28,7 @@ namespace Encircled
 
             Scene.SceneResolutionPolicy = CCSceneResolutionPolicy.ShowAll;
 
-			var score = new CCLabelTtf("Has destruido " + this.score + " orbes.", "StoryBook", 50) {
+			var score = new CCLabelTtf("Has destruido " + this.score + " orbes.", "MarkerFelt", 22) {
 				Position = VisibleBoundsWorldspace.Center,
 				Color = CCColor3B.Black,
 				HorizontalAlignment = CCTextAlignment.Center,
@@ -38,7 +38,7 @@ namespace Encircled
 			score.Scale = VisibleBoundsWorldspace.Size.Width * 0.8f / score.ContentSize.Width;
 
 			var position = new CCPoint (VisibleBoundsWorldspace.MidX, VisibleBoundsWorldspace.MidY * 0.5f);
-			var touch = new CCLabelTtf("\nToca para jugar\n", "StoryBook", 50) {
+			var touch = new CCLabelTtf("\nToca para jugar\n", "MarkerFelt", 22) {
 				Position = position,
 				Color = CCColor3B.Black,
 				HorizontalAlignment = CCTextAlignment.Center,

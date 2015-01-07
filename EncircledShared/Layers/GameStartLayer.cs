@@ -21,18 +21,18 @@ namespace Encircled
         {
             base.AddedToScene ();
 
-            var title = new CCLabelTtf("Encircled", "Parchment", 150) {
+            var title = new CCLabelTtf("Encircled", "MarkerFelt", 22) {
                 Position = VisibleBoundsWorldspace.Center,
                 Color = CCColor3B.Red,
                 HorizontalAlignment = CCTextAlignment.Center,
                 VerticalAlignment = CCVerticalTextAlignment.Center,
                 AnchorPoint = CCPoint.AnchorMiddle
             };
-			title.Scale = VisibleBoundsWorldspace.Size.Width * 0.8f / title.ContentSize.Width;
+			title.Scale = VisibleBoundsWorldspace.Size.Width * 0.6f / title.ContentSize.Width;
 
 			var position = new CCPoint (VisibleBoundsWorldspace.Center.X, VisibleBoundsWorldspace.Center.Y);
 			position.Y = position.Y / 2f;
-			var touch = new CCLabelTtf("\nToca para jugar\n", "StoryBook", 50) {
+			var touch = new CCLabelTtf("\nToca para jugar\n", "MarkerFelt", 22) {
 				Position = position,
 				Color = CCColor3B.Black,
 				HorizontalAlignment = CCTextAlignment.Center,
